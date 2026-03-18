@@ -1,0 +1,30 @@
+{
+  "name": "studypulse",
+  "version": "1.0.0",
+  "description": "StudyPulse - Student Productivity App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder build --win portable"
+  },
+  "build": {
+    "appId": "com.studypulse.app",
+    "productName": "StudyPulse",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "portable",
+      "icon": "icon.ico"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/electron-builder/**",
+      "!dist/**"
+    ]
+  },
+  "devDependencies": {
+    "electron": "^36.0.0",
+    "electron-builder": "^25.0.0"
+  }
+}

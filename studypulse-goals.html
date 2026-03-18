@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StudyPulse — Goals & Progress</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy:#060b16;--navy2:#0b1322;--navy3:#111c33;--navy4:#1a2840;--navy5:#243452;
+  --purple:#7c3aed;--purple2:#9d5cf6;--purple3:#c084fc;--glow:rgba(124,58,237,0.3);
+  --accent:#a78bfa;--text:#e8eaf6;--text2:#94a3b8;--text3:#4a5980;
+  --green:#10b981;--green2:#34d399;--orange:#f59e0b;--red:#ef4444;--cyan:#06b6d4;
+  --border:rgba(124,58,237,0.15);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{min-height:100vh;background:var(--navy);font-family:'DM Sans',sans-serif;color:var(--text);}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.orb{position:absolute;border-radius:50%;filter:blur(110px);opacity:0.3;}
+.orb1{width:500px;height:500px;background:radial-gradient(#7c3aed,transparent 70%);top:-180px;left:-100px;}
+.orb2{width:380px;height:380px;background:radial-gradient(#10b981,transparent 70%);bottom:-100px;right:-80px;}
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:32px 24px;}
+
+/* Header */
+.header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px;}
+.breadcrumb{font-size:12px;color:var(--text3);margin-bottom:6px;}
+.breadcrumb span{color:var(--purple3);}
+.page-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px;}
+.page-sub{font-size:14px;color:var(--text2);margin-top:4px;}
+.btn-new{display:flex;align-items:center;gap:8px;padding:12px 22px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(124,58,237,0.4);transition:all 0.2s;}
+.btn-new:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(124,58,237,0.55);}
+
+/* Tab nav */
+.tab-nav{display:flex;gap:0;background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:5px;margin-bottom:28px;width:fit-content;}
+.tab-btn{padding:9px 22px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--text3);transition:all 0.2s;}
+.tab-btn.active{background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;box-shadow:0 3px 14px rgba(124,58,237,0.4);}
+
+/* Overview cards */
+.overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.ov-card{background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:transform 0.2s;}
+.ov-card:hover{transform:translateY(-2px);}
+.ov-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--c);}
+.ov-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--c);margin-bottom:4px;}
+.ov-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;}
+.ov-sub{font-size:11px;margin-top:6px;}
+.ov-icon{position:absolute;top:16px;right:16px;font-size:26px;opacity:0.12;}
+.up{color:var(--green);}
+.down{color:var(--red);}
+
+/* Main grid */
+.main-grid{display:grid;grid-template-columns:1fr 360px;gap:20px;margin-bottom:20px;}
+.card{background:var(--navy2);border:1px solid var(--border);border-radius:18px;padding:24px;}
+.card-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;}
+.card-action{font-size:12px;color:var(--purple3);cursor:pointer;font-weight:500;}
+
+/* Goals list */
+.goals-list{display:flex;flex-direction:column;gap:14px;}
+.goal-item{background:var(--navy3);border:1px solid transparent;border-radius:14px;padding:16px;transition:border-color 0.2s;position:relative;overflow:hidden;}
+.goal-item:hover{border-color:var(--border);}
+.goal-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gc);}
+.goal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.goal-title-row{display:flex;align-items:center;gap:10px;}
+.goal-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(255,255,255,0.05);}
+.goal-name{font-size:14px;font-weight:600;}
+.goal-category{font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
+.goal-right{display:flex;align-items:center;gap:10px;}
+.goal-pct{font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:var(--gc);}
+.goal-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:0.3px;}
+.badge-on-track{background:rgba(16,185,129,0.15);color:var(--green);}
+.badge-behind{background:rgba(239,68,68,0.15);color:var(--red);}
+.badge-done{background:rgba(124,58,237,0.2);color:var(--purple3);}
+.badge-ahead{background:rgba(6,182,212,0.15);color:var(--cyan);}
+.goal-progress-bar{height:6px;background:var(--navy5);border-radius:10px;overflow:hidden;margin-bottom:10px;}
+.goal-progress-fill{height:100%;border-radius:10px;transition:width 1.2s ease;}
+.goal-meta{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text2);}
+.goal-actions{display:flex;gap:6px;}
+.g-btn{padding:5px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:none;color:var(--text2);transition:all 0.2s;}
+.g-btn:hover{background:var(--navy4);color:var(--text);}
+.g-btn.complete{background:var(--green);border-color:var(--green);color:white;}
+
+/* Streak calendar */
+.streak-section{}
+.streak-hero{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+.streak-num{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--orange);line-height:1;}
+.streak-info{}
+.streak-label{font-size:16px;font-weight:700;}
+.streak-sub{font-size:12px;color:var(--text2);margin-top:3px;}
+.streak-mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:16px;}
+.sc-day{border-radius:6px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;transition:all 0.2s;}
+.sc-day.empty{background:var(--navy4);color:var(--text3);}
+.sc-day.done{background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;}
+.sc-day.today{border:2px solid var(--purple3);color:var(--purple3);background:var(--navy3);}
+.sc-day.miss{background:rgba(239,68,68,0.12);color:rgba(239,68,68,0.5);}
+.sc-header{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:6px;}
+.sc-h{font-size:9px;color:var(--text3);text-align:center;font-weight:600;}
+
+/* Weekly chart */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+.chart-bars{display:flex;gap:10px;align-items:flex-end;height:120px;margin-top:8px;}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.bar-col{width:100%;border-radius:6px 6px 0 0;min-height:4px;transition:height 0.8s ease;}
+.bar-label{font-size:10px;color:var(--text3);}
+.bar-val{font-size:10px;color:var(--text2);font-family:'DM Mono',monospace;}
+
+/* Progress rings row */
+.rings-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.ring-card{background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.ring-wrap{position:relative;display:inline-flex;}
+.ring-wrap svg{transform:rotate(-90deg);}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-pct{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;}
+.ring-name{font-size:11px;color:var(--text2);text-align:center;font-weight:600;}
+
+/* Achievement badges */
+.badges-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.badge-card{background:var(--navy3);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:6px;transition:transform 0.2s;cursor:default;}
+.badge-card:hover{transform:translateY(-2px);}
+.badge-card.earned{border-color:rgba(124,58,237,0.4);background:rgba(124,58,237,0.08);}
+.badge-emoji{font-size:28px;}
+.badge-name{font-size:11px;font-weight:600;text-align:center;color:var(--text2);}
+.badge-card.earned .badge-name{color:var(--purple3);}
+.badge-card.locked{filter:grayscale(0.8);opacity:0.5;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.modal-overlay.show{opacity:1;pointer-events:auto;}
+.modal{background:var(--navy2);border:1px solid var(--border);border-radius:20px;padding:28px;width:460px;max-width:92vw;transform:translateY(14px);transition:transform 0.3s;box-shadow:0 24px 80px rgba(0,0,0,0.6);}
+.modal-overlay.show .modal{transform:translateY(0);}
+.modal-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:20px;}
+.field{margin-bottom:15px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;}
+.field input,.field select{width:100%;padding:11px 14px;background:var(--navy3);border:1px solid var(--navy5);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;}
+.field input:focus,.field select:focus{border-color:var(--purple2);}
+.field input::placeholder{color:var(--text3);}
+.type-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.type-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--navy3);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.type-btn.active{background:rgba(124,58,237,0.2);border-color:rgba(124,58,237,0.4);color:var(--accent);}
+.modal-footer{display:flex;gap:10px;margin-top:22px;}
+.btn-cancel{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.2s;}
+.btn-cancel:hover{background:var(--navy3);}
+.btn-save{flex:2;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.btn-save:hover{transform:translateY(-1px);}
+
+.fade-in{animation:fi 0.4s ease forwards;opacity:0;}
+@keyframes fi{to{opacity:1;}}
+.slide-up{animation:su 0.35s ease forwards;opacity:0;transform:translateY(12px);}
+@keyframes su{to{opacity:1;transform:translateY(0);}}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:var(--navy5);border-radius:10px;}
+</style>
+<style>.sidebar{display:none!important;}.layout{grid-template-columns:1fr!important;}.main{margin-left:0!important;}</style>
+</head>
+<body>
+<div class="bg"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header fade-in">
+    <div>
+      <div class="breadcrumb">StudyPulse → <span>Goals & Progress</span></div>
+      <div class="page-title">🎯 Goals & Progress</div>
+      <div class="page-sub">Track your targets, streaks and achievements</div>
+    </div>
+    <button class="btn-new" onclick="openModal()">＋ New Goal</button>
+  </div>
+
+  <!-- Tab nav -->
+  <div class="tab-nav slide-up">
+    <button class="tab-btn active" onclick="switchTab('goals',this)">🎯 Goals</button>
+    <button class="tab-btn" onclick="switchTab('progress',this)">📈 Progress</button>
+    <button class="tab-btn" onclick="switchTab('streak',this)">🔥 Streak</button>
+    <button class="tab-btn" onclick="switchTab('badges',this)">🏆 Badges</button>
+  </div>
+
+  <!-- Overview -->
+  <div class="overview-grid slide-up">
+    <div class="ov-card" style="--c:#c084fc"><div class="ov-val">6</div><div class="ov-label">Active Goals</div><div class="ov-sub"><span class="up">2 completed</span> this week</div><div class="ov-icon">🎯</div></div>
+    <div class="ov-card" style="--c:#10b981"><div class="ov-val">78%</div><div class="ov-label">Overall Progress</div><div class="ov-sub"><span class="up">↑ 12%</span> vs last week</div><div class="ov-icon">📈</div></div>
+    <div class="ov-card" style="--c:#f59e0b"><div class="ov-val">12🔥</div><div class="ov-label">Day Streak</div><div class="ov-sub">Best: <span style="color:var(--accent)">21 days</span></div><div class="ov-icon">🔥</div></div>
+    <div class="ov-card" style="--c:#a78bfa"><div class="ov-val">8</div><div class="ov-label">Badges Earned</div><div class="ov-sub">4 more to unlock</div><div class="ov-icon">🏆</div></div>
+  </div>
+
+  <!-- Tab content -->
+  <div id="tab-goals">
+    <div class="main-grid">
+      <!-- Goals list -->
+      <div class="card">
+        <div class="card-title">Active Goals <span class="card-action" onclick="openModal()">＋ Add Goal</span></div>
+        <div class="goals-list" id="goals-list"></div>
+      </div>
+      <!-- Streak mini -->
+      <div class="card streak-section">
+        <div class="card-title">🔥 Streak Calendar</div>
+        <div class="streak-hero">
+          <div class="streak-num">12</div>
+          <div class="streak-info">
+            <div class="streak-label">day streak 🔥</div>
+            <div class="streak-sub">Keep it going! 9 more to beat your record</div>
+          </div>
+        </div>
+        <div class="sc-header"><div class="sc-h">M</div><div class="sc-h">T</div><div class="sc-h">W</div><div class="sc-h">T</div><div class="sc-h">F</div><div class="sc-h">S</div><div class="sc-h">S</div></div>
+        <div class="streak-mini-grid" id="streak-grid"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+          <div style="width:12px;height:12px;border-radius:3px;background:linear-gradient(135deg,var(--purple),var(--purple2));"></div><span style="font-size:11px;color:var(--text2);">Studied</span>
+          <div style="width:12px;height:12px;border-radius:3px;background:var(--navy4);margin-left:8px;"></div><span style="font-size:11px;color:var(--text2);">No data</span>
+          <div style="width:12px;height:12px;border-radius:3px;background:rgba(239,68,68,0.2);margin-left:8px;border:1px solid rgba(239,68,68,0.3);"></div><span style="font-size:11px;color:var(--text2);">Missed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-progress" style="display:none;">
+    <div class="chart-row">
+      <div class="card">
+        <div class="card-title">📅 Daily Hours — This Week</div>
+        <div class="chart-bars" id="week-chart"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;" id="week-labels"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📆 Monthly Overview</div>
+        <div class="chart-bars" id="month-chart"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;" id="month-labels"></div>
+      </div>
+    </div>
+    <div class="rings-row" id="rings-row"></div>
+  </div>
+
+  <div id="tab-streak" style="display:none;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div class="card">
+        <div class="card-title">🔥 Full Streak Calendar — March 2026</div>
+        <div class="sc-header"><div class="sc-h">M</div><div class="sc-h">T</div><div class="sc-h">W</div><div class="sc-h">T</div><div class="sc-h">F</div><div class="sc-h">S</div><div class="sc-h">S</div></div>
+        <div class="streak-mini-grid" id="full-streak-grid" style="grid-template-columns:repeat(7,1fr);"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Streak Stats</div>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="streak-stats"></div>
+          <div style="background:var(--navy3);border-radius:12px;padding:16px;">
+            <div style="font-size:12px;color:var(--text2);margin-bottom:10px;font-weight:600;">MOTIVATIONAL QUOTE</div>
+            <div style="font-size:14px;font-style:italic;color:var(--text);line-height:1.6;" id="streak-quote">"Consistency is not a single act, but a habit."</div>
+            <div style="font-size:12px;color:var(--purple3);margin-top:8px;">— Aristotle</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-badges" style="display:none;">
+    <div class="card">
+      <div class="card-title">🏆 All Achievements</div>
+      <div class="badges-grid" id="badges-grid"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- New Goal Modal -->
+<div class="modal-overlay" id="goal-modal">
+  <div class="modal">
+    <div class="modal-title">🎯 Create New Goal</div>
+    <div class="field"><label>Goal Title</label><input id="g-title" placeholder="e.g. Study 5 hours of AI this week"/></div>
+    <div class="field"><label>Type</label>
+      <div class="type-btns">
+        <div class="type-btn active" onclick="selectType(this,'daily')">📅 Daily</div>
+        <div class="type-btn" onclick="selectType(this,'weekly')">📆 Weekly</div>
+        <div class="type-btn" onclick="selectType(this,'monthly')">🗓️ Monthly</div>
+        <div class="type-btn" onclick="selectType(this,'custom')">✏️ Custom</div>
+      </div>
+    </div>
+    <div class="field"><label>Course</label>
+      <select id="g-course">
+        <option>All Courses</option>
+        <option>Final Year Project</option>
+        <option>Artificial Intelligence</option>
+        <option>Machine Learning</option>
+        <option>Software Engineering</option>
+        <option>Networks & Security</option>
+        <option>Database Administration</option>
+        <option>Mobile Development</option>
+        <option>Research Methods</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field"><label>Target Value</label><input id="g-target" type="number" placeholder="e.g. 5"/></div>
+      <div class="field"><label>Unit</label>
+        <select id="g-unit"><option>hours</option><option>sessions</option><option>pages</option><option>tasks</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Priority</label>
+      <div class="type-btns">
+        <div class="type-btn active" id="pri-med" onclick="selectPriority(this,'medium')">⚡ Medium</div>
+        <div class="type-btn" id="pri-hi" onclick="selectPriority(this,'high')">🔥 High</div>
+        <div class="type-btn" id="pri-lo" onclick="selectPriority(this,'low')">💤 Low</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveGoal()">Create Goal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data
+let goals = [
+  {id:1,title:'Study 8h of FYP',type:'weekly',course:'Final Year Project',target:8,current:6.5,unit:'hours',priority:'high',color:'#7c3aed',icon:'🎓'},
+  {id:2,title:'Complete 3 AI sessions',type:'weekly',course:'Artificial Intelligence',target:3,current:3,unit:'sessions',priority:'high',color:'#3b82f6',icon:'🤖'},
+  {id:3,title:'Study 2h daily',type:'daily',course:'All Courses',target:2,current:1.5,unit:'hours',priority:'medium',color:'#10b981',icon:'⏱️'},
+  {id:4,title:'Finish ML assignment',type:'custom',course:'Machine Learning',target:1,current:0,unit:'tasks',priority:'high',color:'#8b5cf6',icon:'🧠'},
+  {id:5,title:'Read 30 pages research',type:'weekly',course:'Research Methods',target:30,current:22,unit:'pages',priority:'medium',color:'#06b6d4',icon:'📝'},
+  {id:6,title:'Practice Networks lab',type:'weekly',course:'Networks & Security',target:4,current:1,unit:'hours',priority:'low',color:'#ef4444',icon:'🔒'},
+];
+
+const badges = [
+  {icon:'🔥',name:'7-Day Streak',earned:true},{icon:'⚡',name:'Speed Learner',earned:true},
+  {icon:'🎯',name:'Goal Crusher',earned:true},{icon:'🌙',name:'Night Owl',earned:true},
+  {icon:'📚',name:'Bookworm',earned:true},{icon:'🏅',name:'First Session',earned:true},
+  {icon:'⭐',name:'5-Star Week',earned:true},{icon:'🤝',name:'Consistent',earned:true},
+  {icon:'💎',name:'30-Day Streak',earned:false},{icon:'🚀',name:'50h Month',earned:false},
+  {icon:'👑',name:'Top Scholar',earned:false},{icon:'🧠',name:'Mind Master',earned:false},
+];
+
+const weekData = [2.1,3.5,4.2,5.8,3.2,1.5,0.8];
+const monthData = [3.2,4.1,5.5,6.2,4.8,3.9,5.1,6.8,7.2,5.5,4.2,3.8];
+const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+let goalType='daily', goalPriority='medium';
+
+// ── Render goals
+function renderGoals(){
+  const list=document.getElementById('goals-list');
+  list.innerHTML=goals.map(g=>{
+    const pct=Math.min(100,Math.round((g.current/g.target)*100));
+    const isDone=g.current>=g.target;
+    const isLow=pct<40;
+    const badge=isDone?'badge-done done':'ahead'in g?'badge-ahead':isLow?'badge-behind behind':'badge-on-track on-track';
+    const badgeText=isDone?'✓ Done':isLow?'Behind':'On Track';
+    return `<div class="goal-item" style="--gc:${g.color}">
+      <div class="goal-header">
+        <div class="goal-title-row">
+          <div class="goal-icon" style="background:${g.color}22">${g.icon}</div>
+          <div><div class="goal-name">${g.title}</div><div class="goal-category">${g.type} · ${g.course}</div></div>
+        </div>
+        <div class="goal-right">
+          <span class="goal-pct">${pct}%</span>
+          <span class="goal-badge ${badge}">${badgeText}</span>
+        </div>
+      </div>
+      <div class="goal-progress-bar"><div class="goal-progress-fill" style="width:${pct}%;background:${g.color};"></div></div>
+      <div class="goal-meta">
+        <span>${g.current} / ${g.target} ${g.unit}</span>
+        <div class="goal-actions">
+          <button class="g-btn" onclick="logProgress(${g.id})">+ Log</button>
+          ${!isDone?`<button class="g-btn complete" onclick="completeGoal(${g.id})">✓ Done</button>`:''}
+          <button class="g-btn" onclick="deleteGoal(${g.id})">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function logProgress(id){
+  const goal=goals.find(g=>g.id===id);
+  if(!goal||goal.current>=goal.target)return;
+  const inc=goal.unit==='hours'?0.5:goal.unit==='pages'?5:1;
+  goal.current=Math.min(goal.target,+(goal.current+inc).toFixed(1));
+  renderGoals();
+}
+
+function completeGoal(id){
+  const goal=goals.find(g=>g.id===id);
+  if(goal){goal.current=goal.target;renderGoals();}
+}
+
+function deleteGoal(id){
+  goals=goals.filter(g=>g.id!==id);renderGoals();
+}
+
+// ── Streak grid
+function buildStreakGrid(elId,size){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  el.innerHTML='';
+  const studiedDays=new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
+  const missedDays=new Set([]);
+  for(let i=1;i<=size;i++){
+    const d=document.createElement('div');
+    d.className='sc-day '+(i===11?'today':studiedDays.has(i)?'done':missedDays.has(i)?'miss':'empty');
+    d.textContent=i;
+    el.appendChild(d);
+  }
+}
+
+// ── Progress rings
+function buildRings(){
+  const courses=[
+    {name:'FYP',pct:82,color:'#7c3aed'},{name:'AI',pct:67,color:'#3b82f6'},
+    {name:'ML',pct:60,color:'#8b5cf6'},{name:'SE',pct:60,color:'#10b981'},
+    {name:'NW',pct:35,color:'#ef4444'},{name:'DB',pct:53,color:'#f59e0b'},
+  ];
+  document.getElementById('rings-row').innerHTML=courses.map(c=>{
+    const r=40,circ=2*Math.PI*r,offset=circ*(1-c.pct/100);
+    return `<div class="ring-card">
+      <div class="ring-wrap">
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="${r}" fill="none" stroke="var(--navy4)" stroke-width="8"/>
+          <circle cx="50" cy="50" r="${r}" fill="none" stroke="${c.color}" stroke-width="8" stroke-linecap="round"
+            stroke-dasharray="${circ}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset 1s ease;"/>
+        </svg>
+        <div class="ring-center"><div class="ring-pct" style="color:${c.color}">${c.pct}%</div></div>
+      </div>
+      <div class="ring-name">${c.name}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Charts
+function buildChart(elId,labelsId,data,labels,maxLabel){
+  const maxVal=Math.max(...data);
+  const bars=document.getElementById(elId);
+  const lbls=document.getElementById(labelsId);
+  if(!bars||!lbls)return;
+  bars.innerHTML=data.map((v,i)=>`
+    <div class="bar-wrap">
+      <div class="bar-val">${v}h</div>
+      <div class="bar-col" style="height:${(v/maxVal)*100}px;background:${v===maxVal?'var(--purple2)':'var(--navy5)'};"></div>
+    </div>`).join('');
+  lbls.innerHTML=labels.map(l=>`<span style="font-size:10px;color:var(--text3);flex:1;text-align:center;">${l}</span>`).join('');
+}
+
+// ── Streak stats
+function buildStreakStats(){
+  const el=document.getElementById('streak-stats');
+  if(!el)return;
+  const stats=[
+    {val:'12',label:'Current Streak',color:'var(--orange)'},
+    {val:'21',label:'Best Streak',color:'var(--purple3)'},
+    {val:'18',label:'Sessions This Month',color:'var(--green)'},
+    {val:'89%',label:'Consistency Rate',color:'var(--accent)'},
+  ];
+  el.innerHTML=stats.map(s=>`
+    <div style="background:var(--navy3);border-radius:10px;padding:14px;">
+      <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:${s.color}">${s.val}</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:3px;">${s.label}</div>
+    </div>`).join('');
+}
+
+// ── Badges
+function buildBadges(){
+  const el=document.getElementById('badges-grid');
+  if(!el)return;
+  el.innerHTML=badges.map(b=>`
+    <div class="badge-card ${b.earned?'earned':'locked'}">
+      <div class="badge-emoji">${b.icon}</div>
+      <div class="badge-name">${b.name}</div>
+      ${!b.earned?'<div style="font-size:10px;color:var(--text3);">🔒 Locked</div>':''}
+    </div>`).join('');
+}
+
+// ── Tab switching
+function switchTab(tab,btn){
+  ['goals','progress','streak','badges'].forEach(t=>{
+    const el=document.getElementById('tab-'+t);
+    if(el)el.style.display=t===tab?'block':'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(tab==='progress'){buildChart('week-chart','week-labels',weekData,days);buildChart('month-chart','month-labels',monthData,months.slice(0,12));buildRings();}
+  if(tab==='streak'){buildStreakGrid('full-streak-grid',31);buildStreakStats();}
+  if(tab==='badges')buildBadges();
+}
+
+// ── Modal
+function openModal(){document.getElementById('goal-modal').classList.add('show');}
+function closeModal(){document.getElementById('goal-modal').classList.remove('show');}
+function selectType(el,t){goalType=t;document.querySelectorAll('.type-btns .type-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+function selectPriority(el,p){goalPriority=p;['pri-hi','pri-med','pri-lo'].forEach(id=>{const b=document.getElementById(id);if(b)b.classList.remove('active');});el.classList.add('active');}
+function saveGoal(){
+  const title=document.getElementById('g-title').value.trim();
+  const course=document.getElementById('g-course').value;
+  const target=parseFloat(document.getElementById('g-target').value)||1;
+  const unit=document.getElementById('g-unit').value;
+  if(!title){alert('Please enter a goal title');return;}
+  const colors={'Final Year Project':'#7c3aed','Artificial Intelligence':'#3b82f6','Machine Learning':'#8b5cf6','Software Engineering':'#10b981','Networks & Security':'#ef4444','Database Administration':'#f59e0b','Mobile Development':'#ec4899','Research Methods':'#06b6d4'};
+  const icons={'hours':'⏱️','sessions':'📖','pages':'📄','tasks':'✅'};
+  goals.push({id:Date.now(),title,type:goalType,course,target,current:0,unit,priority:goalPriority,color:colors[course]||'#7c3aed',icon:icons[unit]||'🎯'});
+  closeModal();renderGoals();
+}
+document.getElementById('goal-modal').addEventListener('click',e=>{if(e.target===document.getElementById('goal-modal'))closeModal();});
+
+// ── Init
+renderGoals();
+buildStreakGrid('streak-grid',28);
+</script>
+</body>
+</html>

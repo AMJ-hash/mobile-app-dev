@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StudyPulse — Flashcards</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy:#060b16;--navy2:#0b1322;--navy3:#111c33;--navy4:#1a2840;--navy5:#243452;
+  --purple:#7c3aed;--purple2:#9d5cf6;--purple3:#c084fc;--glow:rgba(124,58,237,0.35);
+  --accent:#a78bfa;--text:#e8eaf6;--text2:#94a3b8;--text3:#4a5980;
+  --green:#10b981;--green2:#34d399;--orange:#f59e0b;--red:#ef4444;--cyan:#06b6d4;
+  --border:rgba(124,58,237,0.15);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{min-height:100vh;background:var(--navy);font-family:'DM Sans',sans-serif;color:var(--text);overflow-x:hidden;}
+
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.orb{position:absolute;border-radius:50%;filter:blur(120px);opacity:0.25;}
+.orb1{width:600px;height:600px;background:radial-gradient(#7c3aed,transparent 70%);top:-200px;right:-150px;}
+.orb2{width:400px;height:400px;background:radial-gradient(#06b6d4,transparent 70%);bottom:-100px;left:-80px;}
+
+/* ── Layout */
+.layout{position:relative;z-index:1;display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+
+/* ── Sidebar */
+.sidebar{background:var(--navy2);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:20px;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--purple3));display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 18px var(--glow);}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;}
+.logo-text span{color:var(--purple3);}
+.section-label{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;}
+.deck-list{display:flex;flex-direction:column;gap:5px;}
+.deck-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:all 0.2s;font-size:13px;font-weight:500;color:var(--text2);}
+.deck-item:hover{background:var(--navy3);color:var(--text);}
+.deck-item.active{background:rgba(124,58,237,0.15);border-color:rgba(124,58,237,0.3);color:var(--accent);}
+.deck-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.deck-count{margin-left:auto;font-size:11px;font-family:'DM Mono',monospace;color:var(--text3);}
+.sidebar-stats{display:flex;flex-direction:column;gap:8px;margin-top:auto;}
+.sstat{background:var(--navy3);border-radius:10px;padding:12px;border:1px solid var(--border);}
+.sstat-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;}
+.sstat-label{font-size:10px;color:var(--text2);margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* ── Main */
+.main{display:flex;flex-direction:column;}
+
+/* Mode header */
+.main-header{padding:24px 28px 0;display:flex;align-items:center;justify-content:space-between;}
+.main-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.3px;}
+.main-sub{font-size:13px;color:var(--text2);margin-top:3px;}
+.header-actions{display:flex;gap:10px;align-items:center;}
+.btn{padding:10px 20px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;}
+.btn-primary{background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;box-shadow:0 4px 16px rgba(124,58,237,0.4);}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.55);}
+.btn-ghost{background:var(--navy3);border:1px solid var(--border);color:var(--text2);}
+.btn-ghost:hover{background:var(--navy4);color:var(--text);}
+
+/* Mode tabs */
+.mode-tabs{display:flex;gap:6px;padding:16px 28px 0;}
+.mode-tab{padding:9px 20px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--navy3);border:1px solid var(--border);color:var(--text2);transition:all 0.25s;}
+.mode-tab.active{background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;border-color:transparent;box-shadow:0 3px 14px rgba(124,58,237,0.4);}
+
+/* ── Browse view */
+#view-browse{padding:20px 28px;}
+.search-row{display:flex;gap:10px;margin-bottom:18px;}
+.search-wrap{flex:1;position:relative;}
+.search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;}
+.search-input{width:100%;padding:10px 13px 10px 40px;background:var(--navy2);border:1px solid var(--navy5);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color 0.2s;}
+.search-input:focus{border-color:var(--purple2);}
+.search-input::placeholder{color:var(--text3);}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+.fc-card{background:var(--navy2);border:1px solid var(--border);border-radius:16px;padding:18px;cursor:pointer;transition:all 0.25s;position:relative;overflow:hidden;}
+.fc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--cc);}
+.fc-card:hover{transform:translateY(-3px);box-shadow:0 10px 36px rgba(0,0,0,0.4);border-color:var(--cc);}
+.fc-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.fc-tag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:0.3px;background:rgba(255,255,255,0.06);color:var(--text2);}
+.fc-difficulty{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.diff-easy{background:rgba(16,185,129,0.15);color:var(--green);}
+.diff-medium{background:rgba(245,158,11,0.15);color:var(--orange);}
+.diff-hard{background:rgba(239,68,68,0.15);color:var(--red);}
+.fc-question{font-size:14px;font-weight:600;color:var(--text);line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.fc-answer-preview{font-size:12px;color:var(--text3);border-top:1px solid var(--navy5);padding-top:10px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;}
+.fc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
+.fc-course{font-size:11px;color:var(--text3);}
+.fc-status{width:8px;height:8px;border-radius:50%;}
+
+/* Add card in grid */
+.fc-add{border-style:dashed;display:flex;align-items:center;justify-content:center;min-height:140px;cursor:pointer;}
+.fc-add:hover{background:rgba(124,58,237,0.05);}
+
+/* ── Study / Flip view */
+#view-study{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:20px 28px;gap:24px;}
+.study-header{width:100%;display:flex;align-items:center;justify-content:space-between;}
+.progress-pill{display:flex;align-items:center;gap:10px;background:var(--navy3);border-radius:50px;padding:8px 16px;border:1px solid var(--border);}
+.progress-text{font-size:13px;font-weight:600;color:var(--text2);}
+.progress-mini{width:120px;height:4px;background:var(--navy5);border-radius:10px;overflow:hidden;}
+.progress-mini-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--purple3));border-radius:10px;transition:width 0.4s ease;}
+
+/* Flashcard flip */
+.card-scene{width:100%;max-width:560px;height:300px;perspective:1000px;cursor:pointer;}
+.card-3d{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 0.6s cubic-bezier(0.4,0.2,0.2,1);}
+.card-3d.flipped{transform:rotateY(180deg);}
+.card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px;text-align:center;}
+.card-front{background:linear-gradient(135deg,var(--navy2),var(--navy3));border:1px solid var(--border);}
+.card-back{background:linear-gradient(135deg,var(--navy3),rgba(124,58,237,0.12));border:1px solid rgba(124,58,237,0.3);transform:rotateY(180deg);}
+.card-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:16px;}
+.card-question{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--text);line-height:1.4;}
+.card-answer{font-size:16px;color:var(--text2);line-height:1.6;font-weight:400;}
+.card-course-badge{position:absolute;top:16px;right:16px;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,0.06);color:var(--text3);}
+.flip-hint{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:6px;}
+
+/* Study controls */
+.study-controls{display:flex;align-items:center;gap:16px;}
+.btn-result{width:60px;height:60px;border-radius:50%;border:none;font-size:22px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;}
+.btn-again{background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3);}
+.btn-again:hover{background:rgba(239,68,68,0.3);transform:scale(1.08);}
+.btn-hard{background:rgba(245,158,11,0.15);color:var(--orange);border:1px solid rgba(245,158,11,0.3);}
+.btn-hard:hover{background:rgba(245,158,11,0.3);transform:scale(1.08);}
+.btn-good{background:rgba(16,185,129,0.15);color:var(--green);border:1px solid rgba(16,185,129,0.3);}
+.btn-good:hover{background:rgba(16,185,129,0.3);transform:scale(1.08);}
+.btn-easy{background:rgba(6,182,212,0.15);color:var(--cyan);border:1px solid rgba(6,182,212,0.3);}
+.btn-easy:hover{background:rgba(6,182,212,0.3);transform:scale(1.08);}
+.btn-result-label{font-size:10px;color:var(--text3);margin-top:5px;font-weight:600;}
+.result-btn-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.flip-btn{padding:12px 28px;border-radius:12px;background:var(--navy3);border:1px solid var(--border);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.flip-btn:hover{background:var(--navy4);color:var(--text);}
+.rating-row{display:flex;gap:14px;align-items:flex-start;}
+
+/* Result screen */
+#view-result{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:20px;text-align:center;}
+.result-emoji{font-size:64px;animation:bounce 0.6s ease;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+.result-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;}
+.result-stats{display:flex;gap:20px;}
+.rs{background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:18px 24px;min-width:100px;}
+.rs-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;}
+.rs-label{font-size:11px;color:var(--text2);margin-top:4px;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.modal-overlay.show{opacity:1;pointer-events:auto;}
+.modal{background:var(--navy2);border:1px solid var(--border);border-radius:20px;padding:28px;width:480px;max-width:92vw;transform:translateY(14px);transition:transform 0.3s;}
+.modal-overlay.show .modal{transform:translateY(0);}
+.modal-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:20px;}
+.field{margin-bottom:15px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;}
+.field input,.field select,.field textarea{width:100%;padding:11px 14px;background:var(--navy3);border:1px solid var(--navy5);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;resize:vertical;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--purple2);}
+.field input::placeholder,.field textarea::placeholder{color:var(--text3);}
+.modal-footer{display:flex;gap:10px;margin-top:20px;}
+.btn-cancel{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
+.btn-cancel:hover{background:var(--navy3);}
+.btn-save{flex:2;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(124,58,237,0.4);}
+
+.fade-in{animation:fi 0.4s ease forwards;opacity:0;}
+@keyframes fi{to{opacity:1;}}
+@media(max-width:800px){.layout{grid-template-columns:1fr;}.sidebar{display:none;}}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--navy5);border-radius:10px;}
+</style>
+<style>.sidebar{display:none!important;}.layout{grid-template-columns:1fr!important;}.main{margin-left:0!important;}</style>
+</head>
+<body>
+<div class="bg"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">Study<span>Pulse</span></div>
+    </div>
+    <div>
+      <div class="section-label" style="margin-bottom:10px;">Decks</div>
+      <div class="deck-list" id="deck-list"></div>
+    </div>
+    <div class="sidebar-stats">
+      <div class="sstat"><div class="sstat-val" style="color:var(--purple3)" id="s-total">24</div><div class="sstat-label">Total Cards</div></div>
+      <div class="sstat"><div class="sstat-val" style="color:var(--green)" id="s-mastered">11</div><div class="sstat-label">Mastered</div></div>
+      <div class="sstat"><div class="sstat-val" style="color:var(--orange)" id="s-due">8</div><div class="sstat-label">Due Today</div></div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+    <div class="main-header fade-in">
+      <div>
+        <div class="main-title" id="main-title">🃏 All Flashcards</div>
+        <div class="main-sub" id="main-sub">24 cards across 8 courses</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-ghost" onclick="openModal()">＋ Add Card</button>
+        <button class="btn btn-primary" onclick="startStudy()">▶ Study Now</button>
+      </div>
+    </div>
+
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tab-browse" onclick="setView('browse',this)">📋 Browse</button>
+      <button class="mode-tab" id="tab-study" onclick="startStudy()">🎓 Study</button>
+      <button class="mode-tab" id="tab-quiz" onclick="startQuiz()">⚡ Quiz</button>
+    </div>
+
+    <!-- BROWSE VIEW -->
+    <div id="view-browse">
+      <div class="search-row">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" id="search-input" placeholder="Search cards..." oninput="renderCards()"/>
+        </div>
+        <select class="search-input" id="diff-filter" style="width:140px;padding-left:12px;" onchange="renderCards()">
+          <option value="">All Levels</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+      <div class="cards-grid" id="cards-grid"></div>
+    </div>
+
+    <!-- STUDY VIEW -->
+    <div id="view-study">
+      <div class="study-header">
+        <button class="btn btn-ghost" style="padding:8px 16px;font-size:13px;" onclick="setView('browse')">← Back</button>
+        <div class="progress-pill">
+          <span class="progress-text" id="study-progress">1 / 8</span>
+          <div class="progress-mini"><div class="progress-mini-fill" id="study-bar" style="width:12%;"></div></div>
+        </div>
+        <button class="btn btn-ghost" style="padding:8px 16px;font-size:13px;" onclick="shuffleStudy()">🔀 Shuffle</button>
+      </div>
+
+      <div class="card-scene" onclick="flipCard()" id="card-scene">
+        <div class="card-3d" id="card-3d">
+          <div class="card-face card-front">
+            <div class="card-label">Question</div>
+            <div class="card-question" id="study-question">What is a neural network?</div>
+            <div class="card-course-badge" id="study-course-badge">AI</div>
+          </div>
+          <div class="card-face card-back">
+            <div class="card-label">Answer</div>
+            <div class="card-answer" id="study-answer">A computational model inspired by the human brain, consisting of interconnected nodes (neurons) organized in layers that process information.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip-hint">
+        <span>👆</span><span>Click the card to reveal the answer</span>
+      </div>
+
+      <div id="rating-controls" style="display:none;flex-direction:column;align-items:center;gap:12px;">
+        <div style="font-size:13px;color:var(--text2);font-weight:600;">How well did you know this?</div>
+        <div class="rating-row">
+          <div class="result-btn-wrap"><button class="btn-result btn-again" onclick="rateCard('again')">😓</button><div class="btn-result-label">Again</div></div>
+          <div class="result-btn-wrap"><button class="btn-result btn-hard" onclick="rateCard('hard')">😐</button><div class="btn-result-label">Hard</div></div>
+          <div class="result-btn-wrap"><button class="btn-result btn-good" onclick="rateCard('good')">😊</button><div class="btn-result-label">Good</div></div>
+          <div class="result-btn-wrap"><button class="btn-result btn-easy" onclick="rateCard('easy')">🤩</button><div class="btn-result-label">Easy</div></div>
+        </div>
+      </div>
+      <div id="flip-controls" style="display:flex;">
+        <button class="flip-btn" onclick="flipCard()">Flip Card ↕</button>
+      </div>
+    </div>
+
+    <!-- RESULT VIEW -->
+    <div id="view-result">
+      <div class="result-emoji" id="result-emoji">🎉</div>
+      <div class="result-title" id="result-title">Session Complete!</div>
+      <div style="font-size:14px;color:var(--text2);" id="result-sub">Great job studying today</div>
+      <div class="result-stats">
+        <div class="rs"><div class="rs-val" style="color:var(--green)" id="r-easy">0</div><div class="rs-label">Easy</div></div>
+        <div class="rs"><div class="rs-val" style="color:var(--cyan)" id="r-good">0</div><div class="rs-label">Good</div></div>
+        <div class="rs"><div class="rs-val" style="color:var(--orange)" id="r-hard">0</div><div class="rs-label">Hard</div></div>
+        <div class="rs"><div class="rs-val" style="color:var(--red)" id="r-again">0</div><div class="rs-label">Again</div></div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button class="btn btn-ghost" onclick="setView('browse')">Back to Cards</button>
+        <button class="btn btn-primary" onclick="restartStudy()">🔁 Study Again</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add Card Modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">🃏 Add New Flashcard</div>
+    <div class="field"><label>Question</label><textarea id="f-question" rows="3" placeholder="Enter your question..."></textarea></div>
+    <div class="field"><label>Answer</label><textarea id="f-answer" rows="3" placeholder="Enter the answer..."></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field"><label>Course</label>
+        <select id="f-course">
+          <option>Final Year Project</option><option>Artificial Intelligence</option>
+          <option>Machine Learning</option><option>Software Engineering</option>
+          <option>Networks & Security</option><option>Database Administration</option>
+          <option>Mobile Development</option><option>Research Methods</option>
+        </select>
+      </div>
+      <div class="field"><label>Difficulty</label>
+        <select id="f-diff"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveCard()">Add Card</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Card data
+let cards = [
+  // AI
+  {id:1,q:'What is a neural network?',a:'A computational model inspired by the human brain, consisting of interconnected nodes organized in layers that process information.',course:'Artificial Intelligence',color:'#3b82f6',diff:'medium',mastered:false},
+  {id:2,q:'Define supervised learning.',a:'A type of ML where the algorithm learns from labeled training data to predict outputs for new, unseen inputs.',course:'Artificial Intelligence',color:'#3b82f6',diff:'easy',mastered:true},
+  {id:3,q:'What is the A* search algorithm?',a:'A graph traversal and path search algorithm that uses heuristics to efficiently find the shortest path between nodes.',course:'Artificial Intelligence',color:'#3b82f6',diff:'hard',mastered:false},
+  // ML
+  {id:4,q:'What is overfitting?',a:'When a model learns the training data too well, including noise, resulting in poor generalization to new data.',course:'Machine Learning',color:'#8b5cf6',diff:'easy',mastered:true},
+  {id:5,q:'Explain gradient descent.',a:'An optimization algorithm that minimizes a loss function by iteratively adjusting parameters in the direction of the steepest decrease.',course:'Machine Learning',color:'#8b5cf6',diff:'medium',mastered:false},
+  {id:6,q:'What is a confusion matrix?',a:'A table used to evaluate classification model performance, showing TP, TN, FP, and FN values.',course:'Machine Learning',color:'#8b5cf6',diff:'medium',mastered:true},
+  // SE
+  {id:7,q:'What is the SOLID principle?',a:'Five object-oriented design principles: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion.',course:'Software Engineering',color:'#10b981',diff:'hard',mastered:false},
+  {id:8,q:'Define Agile methodology.',a:'An iterative approach to software development emphasizing collaboration, flexibility, and delivering working software in short cycles called sprints.',course:'Software Engineering',color:'#10b981',diff:'easy',mastered:true},
+  // Networks
+  {id:9,q:'What is the OSI model?',a:'A 7-layer conceptual framework for network communication: Physical, Data Link, Network, Transport, Session, Presentation, Application.',course:'Networks & Security',color:'#ef4444',diff:'hard',mastered:false},
+  {id:10,q:'What is a SQL injection attack?',a:'A code injection attack where malicious SQL statements are inserted into input fields to manipulate or destroy a database.',course:'Networks & Security',color:'#ef4444',diff:'medium',mastered:false},
+  // DB
+  {id:11,q:'What is database normalization?',a:'The process of organizing a database to reduce redundancy and improve data integrity, typically through normal forms (1NF, 2NF, 3NF).',course:'Database Administration',color:'#f59e0b',diff:'medium',mastered:true},
+  {id:12,q:'Difference between INNER and LEFT JOIN?',a:'INNER JOIN returns only matching rows from both tables. LEFT JOIN returns all rows from the left table plus matching rows from the right.',course:'Database Administration',color:'#f59e0b',diff:'easy',mastered:true},
+  // FYP
+  {id:13,q:'What is a literature review?',a:'A comprehensive survey of published work relevant to a research topic, identifying gaps and situating the research in its academic context.',course:'Final Year Project',color:'#7c3aed',diff:'easy',mastered:false},
+  {id:14,q:'Define research methodology.',a:'The systematic framework describing the methods, tools, and procedures used to collect, analyze, and interpret research data.',course:'Final Year Project',color:'#7c3aed',diff:'medium',mastered:false},
+  // Mobile
+  {id:15,q:'What is a lifecycle in Android?',a:'A series of states an Activity/Fragment goes through from creation to destruction: onCreate, onStart, onResume, onPause, onStop, onDestroy.',course:'Mobile Development',color:'#ec4899',diff:'medium',mastered:true},
+  {id:16,q:'What is Jetpack Compose?',a:'Android\'s modern declarative UI toolkit for building native interfaces using Kotlin functions, replacing the traditional XML-based layouts.',course:'Mobile Development',color:'#ec4899',diff:'medium',mastered:false},
+  // Research
+  {id:17,q:'Difference between qualitative and quantitative research?',a:'Quantitative research uses numerical data and statistical analysis. Qualitative research explores non-numerical data like interviews and observations.',course:'Research Methods',color:'#06b6d4',diff:'easy',mastered:true},
+  {id:18,q:'What is a null hypothesis?',a:'A statement of no effect or no difference, used as the default assumption in statistical hypothesis testing (H₀).',course:'Research Methods',color:'#06b6d4',diff:'medium',mastered:false},
+];
+
+// ── Decks (courses)
+const decks = [
+  {name:'All Cards',color:'#a78bfa',icon:'🃏'},
+  {name:'Final Year Project',color:'#7c3aed',icon:'🎓'},
+  {name:'Artificial Intelligence',color:'#3b82f6',icon:'🤖'},
+  {name:'Machine Learning',color:'#8b5cf6',icon:'🧠'},
+  {name:'Software Engineering',color:'#10b981',icon:'⚙️'},
+  {name:'Networks & Security',color:'#ef4444',icon:'🔒'},
+  {name:'Database Administration',color:'#f59e0b',icon:'🗄️'},
+  {name:'Mobile Development',color:'#ec4899',icon:'📱'},
+  {name:'Research Methods',color:'#06b6d4',icon:'📝'},
+];
+
+let activeDeck = 'All Cards';
+let studyQueue = [];
+let studyIdx = 0;
+let isFlipped = false;
+let results = {easy:0,good:0,hard:0,again:0};
+
+// ── Build sidebar
+function buildSidebar(){
+  const list = document.getElementById('deck-list');
+  list.innerHTML = decks.map(d => {
+    const count = d.name === 'All Cards' ? cards.length : cards.filter(c=>c.course===d.name).length;
+    return `<div class="deck-item ${d.name===activeDeck?'active':''}" onclick="selectDeck('${d.name.replace(/'/g,"\\'")}')">
+      <div class="deck-dot" style="background:${d.color}"></div>
+      ${d.icon} ${d.name}
+      <span class="deck-count">${count}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('s-total').textContent = cards.length;
+  document.getElementById('s-mastered').textContent = cards.filter(c=>c.mastered).length;
+  document.getElementById('s-due').textContent = cards.filter(c=>!c.mastered).length;
+}
+
+function selectDeck(name){
+  activeDeck = name;
+  buildSidebar();
+  renderCards();
+  const deck = decks.find(d=>d.name===name);
+  const filtered = name==='All Cards'?cards:cards.filter(c=>c.course===name);
+  document.getElementById('main-title').textContent = `🃏 ${name}`;
+  document.getElementById('main-sub').textContent = `${filtered.length} cards`;
+}
+
+// ── Render browse cards
+function renderCards(){
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const diff = document.getElementById('diff-filter').value;
+  let filtered = activeDeck==='All Cards' ? cards : cards.filter(c=>c.course===activeDeck);
+  if(q) filtered = filtered.filter(c=>c.q.toLowerCase().includes(q)||c.a.toLowerCase().includes(q));
+  if(diff) filtered = filtered.filter(c=>c.diff===diff);
+
+  const grid = document.getElementById('cards-grid');
+  grid.innerHTML = filtered.map(c=>`
+    <div class="fc-card" style="--cc:${c.color}">
+      <div class="fc-card-top">
+        <span class="fc-tag">${c.course.split(' ')[0]}</span>
+        <span class="fc-difficulty diff-${c.diff}">${c.diff}</span>
+      </div>
+      <div class="fc-question">${c.q}</div>
+      <div class="fc-answer-preview">${c.a}</div>
+      <div class="fc-footer">
+        <span class="fc-course">${c.course}</span>
+        <div class="fc-status" style="background:${c.mastered?'var(--green)':'var(--navy5)'}"></div>
+      </div>
+    </div>
+  `).join('') + `
+    <div class="fc-card fc-add" onclick="openModal()">
+      <div style="text-align:center;color:var(--text3);">
+        <div style="font-size:28px;opacity:0.4;margin-bottom:8px;">＋</div>
+        <div style="font-size:12px;font-weight:600;">Add Card</div>
+      </div>
+    </div>`;
+}
+
+// ── Study mode
+function startStudy(){
+  let filtered = activeDeck==='All Cards' ? cards : cards.filter(c=>c.course===activeDeck);
+  studyQueue = [...filtered].sort(()=>Math.random()-0.5);
+  studyIdx = 0; results = {easy:0,good:0,hard:0,again:0};
+  setView('study');
+  loadStudyCard();
+  document.getElementById('tab-study').classList.add('active');
+  document.getElementById('tab-browse').classList.remove('active');
+}
+
+function startQuiz(){ startStudy(); }
+
+function shuffleStudy(){
+  studyQueue = [...studyQueue].sort(()=>Math.random()-0.5);
+  studyIdx = 0; loadStudyCard();
+}
+
+function loadStudyCard(){
+  if(studyIdx >= studyQueue.length){ showResult(); return; }
+  const card = studyQueue[studyIdx];
+  isFlipped = false;
+  document.getElementById('card-3d').classList.remove('flipped');
+  document.getElementById('study-question').textContent = card.q;
+  document.getElementById('study-answer').textContent = card.a;
+  document.getElementById('study-course-badge').textContent = card.course.split(' ')[0];
+  document.getElementById('study-progress').textContent = `${studyIdx+1} / ${studyQueue.length}`;
+  document.getElementById('study-bar').style.width = `${((studyIdx+1)/studyQueue.length)*100}%`;
+  document.getElementById('rating-controls').style.display = 'none';
+  document.getElementById('flip-controls').style.display = 'flex';
+}
+
+function flipCard(){
+  isFlipped = !isFlipped;
+  document.getElementById('card-3d').classList.toggle('flipped', isFlipped);
+  if(isFlipped){
+    document.getElementById('rating-controls').style.display = 'flex';
+    document.getElementById('flip-controls').style.display = 'none';
+  }
+}
+
+function rateCard(rating){
+  results[rating]++;
+  studyIdx++;
+  loadStudyCard();
+}
+
+function showResult(){
+  setView('result');
+  const total = studyQueue.length;
+  const score = results.easy + results.good;
+  const pct = Math.round((score/total)*100);
+  document.getElementById('r-easy').textContent = results.easy;
+  document.getElementById('r-good').textContent = results.good;
+  document.getElementById('r-hard').textContent = results.hard;
+  document.getElementById('r-again').textContent = results.again;
+  document.getElementById('result-emoji').textContent = pct>=80?'🏆':pct>=60?'🎉':'💪';
+  document.getElementById('result-title').textContent = pct>=80?'Excellent Work!':pct>=60?'Good Session!':'Keep Practicing!';
+  document.getElementById('result-sub').textContent = `${score}/${total} cards known · ${pct}% accuracy`;
+}
+
+function restartStudy(){ startStudy(); }
+
+// ── Views
+function setView(view){
+  document.getElementById('view-browse').style.display = view==='browse'?'block':'none';
+  document.getElementById('view-study').style.display = view==='study'?'flex':'none';
+  document.getElementById('view-result').style.display = view==='result'?'flex':'none';
+  if(view==='browse'){
+    document.getElementById('tab-browse').classList.add('active');
+    document.getElementById('tab-study').classList.remove('active');
+  }
+}
+
+// ── Modal
+function openModal(){ document.getElementById('add-modal').classList.add('show'); }
+function closeModal(){ document.getElementById('add-modal').classList.remove('show'); }
+function saveCard(){
+  const q = document.getElementById('f-question').value.trim();
+  const a = document.getElementById('f-answer').value.trim();
+  const course = document.getElementById('f-course').value;
+  const diff = document.getElementById('f-diff').value;
+  if(!q||!a){alert('Please fill in both question and answer.');return;}
+  const courseColors = {'Final Year Project':'#7c3aed','Artificial Intelligence':'#3b82f6','Machine Learning':'#8b5cf6','Software Engineering':'#10b981','Networks & Security':'#ef4444','Database Administration':'#f59e0b','Mobile Development':'#ec4899','Research Methods':'#06b6d4'};
+  cards.push({id:Date.now(),q,a,course,color:courseColors[course]||'#7c3aed',diff,mastered:false});
+  closeModal();
+  document.getElementById('f-question').value='';
+  document.getElementById('f-answer').value='';
+  buildSidebar(); renderCards();
+}
+document.getElementById('add-modal').addEventListener('click',e=>{if(e.target===document.getElementById('add-modal'))closeModal();});
+
+// ── Init
+buildSidebar();
+renderCards();
+setView('browse');
+</script>
+</body>
+</html>

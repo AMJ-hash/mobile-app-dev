@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StudyPulse — Subjects</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy:#060b16;--navy2:#0b1322;--navy3:#111c33;--navy4:#1a2840;--navy5:#243452;
+  --purple:#7c3aed;--purple2:#9d5cf6;--purple3:#c084fc;--glow:rgba(124,58,237,0.3);
+  --accent:#a78bfa;--text:#e8eaf6;--text2:#94a3b8;--text3:#4a5980;
+  --green:#10b981;--orange:#f59e0b;--red:#ef4444;--border:rgba(124,58,237,0.15);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{min-height:100vh;background:var(--navy);font-family:'DM Sans',sans-serif;color:var(--text);}
+
+/* BG */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:0.35;}
+.orb1{width:500px;height:500px;background:radial-gradient(#7c3aed,transparent 70%);top:-150px;right:-100px;}
+.orb2{width:350px;height:350px;background:radial-gradient(#1d4ed8,transparent 70%);bottom:-80px;left:-80px;}
+
+/* Layout */
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:32px 24px;}
+
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;}
+.header-left{}
+.breadcrumb{font-size:12px;color:var(--text3);margin-bottom:6px;}
+.breadcrumb span{color:var(--purple3);}
+.page-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px;}
+.page-sub{font-size:14px;color:var(--text2);margin-top:4px;}
+.btn-add{display:flex;align-items:center;gap:8px;padding:12px 22px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(124,58,237,0.4);transition:all 0.2s;}
+.btn-add:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(124,58,237,0.55);}
+
+/* Summary bar */
+.summary-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.sum-card{background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden;transition:transform 0.2s;}
+.sum-card:hover{transform:translateY(-2px);}
+.sum-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--c,var(--purple2)),transparent);opacity:0.6;}
+.sum-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--c,var(--purple3));}
+.sum-label{font-size:11px;color:var(--text2);margin-top:4px;text-transform:uppercase;letter-spacing:0.8px;}
+.sum-icon{position:absolute;top:14px;right:14px;font-size:24px;opacity:0.12;}
+
+/* View toggle */
+.view-toggle{display:flex;gap:6px;background:var(--navy3);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:24px;width:fit-content;}
+.vt-btn{padding:7px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--text3);transition:all 0.2s;}
+.vt-btn.active{background:var(--navy4);color:var(--text);}
+
+/* Filters */
+.filters{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
+.filter-chip{padding:6px 16px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--navy3);color:var(--text2);transition:all 0.2s;}
+.filter-chip:hover{background:var(--navy4);color:var(--text);}
+.filter-chip.active{background:rgba(124,58,237,0.2);border-color:rgba(124,58,237,0.4);color:var(--accent);}
+
+/* Search */
+.search-wrap{position:relative;margin-bottom:24px;}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;}
+.search-input{width:100%;padding:11px 14px 11px 44px;background:var(--navy2);border:1px solid var(--navy5);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;}
+.search-input:focus{border-color:var(--purple2);}
+.search-input::placeholder{color:var(--text3);}
+
+/* GRID VIEW */
+.courses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;}
+.course-card{background:var(--navy2);border:1px solid var(--border);border-radius:18px;overflow:hidden;transition:all 0.25s;cursor:pointer;position:relative;}
+.course-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,0.4);border-color:var(--card-color);}
+.course-card-top{height:6px;background:var(--card-color);}
+.course-card-body{padding:20px;}
+.course-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
+.course-icon-wrap{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);}
+.course-menu{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:4px;border-radius:6px;transition:background 0.2s;}
+.course-menu:hover{background:var(--navy4);color:var(--text);}
+.course-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px;}
+.course-code{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:0.5px;}
+.course-progress-row{display:flex;align-items:center;justify-content:space-between;margin:14px 0 6px;}
+.course-progress-label{font-size:11px;color:var(--text2);}
+.course-pct{font-size:12px;font-weight:700;color:var(--card-color);}
+.progress-bar{height:5px;background:var(--navy5);border-radius:10px;overflow:hidden;margin-bottom:16px;}
+.progress-fill{height:100%;border-radius:10px;background:var(--card-color);transition:width 1s ease;}
+.course-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.meta-item{background:var(--navy3);border-radius:8px;padding:8px 10px;}
+.meta-val{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--text);}
+.meta-label{font-size:10px;color:var(--text3);margin-top:2px;}
+.course-card-footer{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--border);background:rgba(255,255,255,0.015);}
+.course-tags-wrap{display:flex;gap:6px;}
+.course-tag{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,0.06);color:var(--text2);}
+.btn-study{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;background:var(--card-color);color:white;border:none;cursor:pointer;opacity:0.9;transition:opacity 0.2s;}
+.btn-study:hover{opacity:1;}
+
+/* LIST VIEW */
+.courses-list{display:flex;flex-direction:column;gap:10px;}
+.course-row{display:flex;align-items:center;gap:16px;background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:16px 20px;transition:all 0.2s;cursor:pointer;}
+.course-row:hover{background:var(--navy3);border-color:rgba(124,58,237,0.25);}
+.row-color{width:4px;height:48px;border-radius:4px;flex-shrink:0;}
+.row-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;background:rgba(255,255,255,0.05);flex-shrink:0;}
+.row-info{flex:1;min-width:0;}
+.row-name{font-weight:700;font-size:14px;margin-bottom:3px;}
+.row-code{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.row-progress{width:160px;flex-shrink:0;}
+.row-progress-bar{height:4px;background:var(--navy5);border-radius:10px;overflow:hidden;margin-top:6px;}
+.row-pct{font-size:12px;font-weight:700;text-align:right;margin-bottom:2px;}
+.row-stats{display:flex;gap:20px;flex-shrink:0;}
+.row-stat{text-align:center;}
+.row-stat-val{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;}
+.row-stat-label{font-size:10px;color:var(--text3);margin-top:2px;}
+.row-actions{display:flex;gap:6px;flex-shrink:0;}
+.row-btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--navy4);color:var(--text2);transition:all 0.2s;}
+.row-btn:hover{background:var(--navy5);color:var(--text);}
+.row-btn.primary{border-color:transparent;color:white;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.modal-overlay.show{opacity:1;pointer-events:auto;}
+.modal{background:var(--navy2);border:1px solid var(--border);border-radius:20px;padding:28px;width:480px;max-width:90vw;transform:translateY(16px);transition:transform 0.3s;box-shadow:0 24px 80px rgba(0,0,0,0.5);}
+.modal-overlay.show .modal{transform:translateY(0);}
+.modal-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px;}
+.modal-sub{font-size:13px;color:var(--text2);margin-bottom:24px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:7px;}
+.field input,.field select,.field textarea{width:100%;padding:11px 14px;background:var(--navy3);border:1px solid var(--navy5);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--purple2);}
+.field input::placeholder{color:var(--text3);}
+.color-grid{display:flex;gap:8px;flex-wrap:wrap;}
+.color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all 0.2s;}
+.color-swatch.selected{border-color:white;transform:scale(1.2);}
+.modal-footer{display:flex;gap:10px;margin-top:24px;}
+.btn-cancel{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.2s;}
+.btn-cancel:hover{background:var(--navy3);}
+.btn-save{flex:2;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(124,58,237,0.4);transition:all 0.2s;}
+.btn-save:hover{transform:translateY(-1px);}
+
+/* Detail modal */
+.detail-header{height:5px;border-radius:5px;margin-bottom:20px;}
+.detail-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.ds-card{background:var(--navy3);border-radius:10px;padding:14px;text-align:center;}
+.ds-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;}
+.ds-label{font-size:10px;color:var(--text2);margin-top:3px;text-transform:uppercase;letter-spacing:0.5px;}
+.weekly-chart{background:var(--navy3);border-radius:12px;padding:16px;margin-bottom:16px;}
+.wc-title{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;}
+.wc-bars{display:flex;gap:8px;align-items:flex-end;height:60px;}
+.wc-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.wc-bar{width:100%;border-radius:4px 4px 0 0;transition:height 0.5s ease;min-height:3px;}
+.wc-day{font-size:9px;color:var(--text3);}
+
+/* Animations */
+.fade-in{animation:fadeIn 0.4s ease forwards;opacity:0;}
+@keyframes fadeIn{to{opacity:1;}}
+.slide-up{animation:slideUp 0.35s ease forwards;opacity:0;transform:translateY(12px);}
+@keyframes slideUp{to{opacity:1;transform:translateY(0);}}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:var(--navy5);border-radius:10px;}
+</style>
+<style>.sidebar{display:none!important;}.layout{grid-template-columns:1fr!important;}.main{margin-left:0!important;}</style>
+</head>
+<body>
+<div class="bg"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="header fade-in">
+    <div class="header-left">
+      <div class="breadcrumb">StudyPulse → <span>Subjects</span></div>
+      <div class="page-title">📚 My Courses</div>
+      <div class="page-sub">Year 4 · Computer Science · 8 subjects</div>
+    </div>
+    <button class="btn-add" onclick="openAddModal()">
+      <span>＋</span> Add Course
+    </button>
+  </div>
+
+  <!-- Summary bar -->
+  <div class="summary-bar slide-up">
+    <div class="sum-card" style="--c:#c084fc">
+      <div class="sum-val" id="sum-total">8</div>
+      <div class="sum-label">Total Courses</div>
+      <div class="sum-icon">📚</div>
+    </div>
+    <div class="sum-card" style="--c:#10b981">
+      <div class="sum-val" id="sum-hours">29.3h</div>
+      <div class="sum-label">Hours This Week</div>
+      <div class="sum-icon">⏱️</div>
+    </div>
+    <div class="sum-card" style="--c:#f59e0b">
+      <div class="sum-val" id="sum-avg">3.7h</div>
+      <div class="sum-label">Avg Per Course</div>
+      <div class="sum-icon">📊</div>
+    </div>
+    <div class="sum-card" style="--c:#a78bfa">
+      <div class="sum-val" id="sum-top">FYP</div>
+      <div class="sum-label">Most Studied</div>
+      <div class="sum-icon">🏆</div>
+    </div>
+  </div>
+
+  <!-- Search + filters -->
+  <div class="search-wrap slide-up">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="search-input" placeholder="Search courses..." oninput="filterCourses()"/>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+    <div class="filters">
+      <div class="filter-chip active" onclick="filterBy('all',this)">All (8)</div>
+      <div class="filter-chip" onclick="filterBy('high',this)">🔥 High Priority</div>
+      <div class="filter-chip" onclick="filterBy('low',this)">⚠️ Needs Attention</div>
+      <div class="filter-chip" onclick="filterBy('exam',this)">📝 Has Exam</div>
+    </div>
+    <div class="view-toggle">
+      <button class="vt-btn active" id="vt-grid" onclick="setView('grid',this)">⊞ Grid</button>
+      <button class="vt-btn" id="vt-list" onclick="setView('list',this)">☰ List</button>
+    </div>
+  </div>
+
+  <!-- Courses container -->
+  <div id="courses-container"></div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Add New Course</div>
+    <div class="modal-sub">Fill in the details for your course</div>
+    <div class="field"><label>Course Name</label><input id="f-name" placeholder="e.g. Advanced Algorithms"/></div>
+    <div class="field"><label>Course Code</label><input id="f-code" placeholder="e.g. CS401"/></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="field"><label>Credit Hours</label><input id="f-credits" type="number" placeholder="3" min="1" max="6"/></div>
+      <div class="field"><label>Weekly Goal (hrs)</label><input id="f-goal" type="number" placeholder="5" min="1" max="20"/></div>
+    </div>
+    <div class="field"><label>Icon</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="icon-picker">
+        <span class="color-swatch selected" style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;border:2px solid white;" onclick="selectIcon(this,'🎓')">🎓</span>
+        <span class="color-swatch" style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;background:var(--navy4);border:2px solid transparent;" onclick="selectIcon(this,'🤖')">🤖</span>
+        <span class="color-swatch" style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;background:var(--navy4);border:2px solid transparent;" onclick="selectIcon(this,'🧠')">🧠</span>
+        <span class="color-swatch" style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;background:var(--navy4);border:2px solid transparent;" onclick="selectIcon(this,'⚙️')">⚙️</span>
+        <span class="color-swatch" style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;background:var(--navy4);border:2px solid transparent;" onclick="selectIcon(this,'🔒')">🔒</span>
+        <span class="color-swatch" style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;background:var(--navy4);border:2px solid transparent;" onclick="selectIcon(this,'🗄️')">🗄️</span>
+        <span class="color-swatch" style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;background:var(--navy4);border:2px solid transparent;" onclick="selectIcon(this,'📱')">📱</span>
+        <span class="color-swatch" style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;background:var(--navy4);border:2px solid transparent;" onclick="selectIcon(this,'📝')">📝</span>
+      </div>
+    </div>
+    <div class="field"><label>Color</label>
+      <div class="color-grid" id="color-picker"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('add-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveCourse()">Save Course</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal" style="width:520px;">
+    <div class="detail-header" id="detail-bar"></div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+      <div id="detail-icon" style="width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;background:rgba(255,255,255,0.06);"></div>
+      <div>
+        <div class="modal-title" id="detail-name" style="margin-bottom:0;"></div>
+        <div style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;" id="detail-code"></div>
+      </div>
+      <button class="course-menu" style="margin-left:auto;" onclick="closeModal('detail-modal')">✕</button>
+    </div>
+    <div class="detail-stats" id="detail-stats"></div>
+    <div class="weekly-chart">
+      <div class="wc-title">📅 This Week's Study Hours</div>
+      <div class="wc-bars" id="detail-chart"></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-cancel" style="flex:1;" onclick="closeModal('detail-modal')">Close</button>
+      <button class="btn-save" style="flex:2;" onclick="closeModal('detail-modal')">▶ Start Studying</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Course data
+let courses = [
+  {id:1,name:'Final Year Project',code:'CS490',icon:'🎓',color:'#7c3aed',hours:8.2,goal:10,progress:82,credits:6,tags:['High Priority','Project'],weekHours:[0.5,1.2,1.8,2.1,1.3,0.8,0.5],exam:false},
+  {id:2,name:'Artificial Intelligence',code:'CS410',icon:'🤖',color:'#3b82f6',hours:5.4,goal:8,progress:67,credits:4,tags:['Exam Soon'],weekHours:[0.8,0.9,1.1,1.0,0.7,0.5,0.4],exam:true},
+  {id:3,name:'Machine Learning',code:'CS415',icon:'🧠',color:'#8b5cf6',hours:4.8,goal:8,progress:60,credits:4,tags:['Exam Soon'],weekHours:[0.4,0.8,1.2,0.9,0.8,0.4,0.3],exam:true},
+  {id:4,name:'Software Engineering',code:'CS420',icon:'⚙️',color:'#10b981',hours:3.6,goal:6,progress:60,credits:3,tags:['Group Work'],weekHours:[0.6,0.5,0.8,0.7,0.5,0.3,0.2],exam:false},
+  {id:5,name:'Networks & Security',code:'CS430',icon:'🔒',color:'#ef4444',hours:2.1,goal:6,progress:35,credits:3,tags:['Needs Attention'],weekHours:[0.2,0.3,0.5,0.4,0.3,0.2,0.2],exam:true},
+  {id:6,name:'Database Administration',code:'CS440',icon:'🗄️',color:'#f59e0b',hours:3.2,goal:6,progress:53,credits:3,tags:['Practical'],weekHours:[0.4,0.6,0.8,0.6,0.4,0.2,0.2],exam:false},
+  {id:7,name:'Mobile Development',code:'CS450',icon:'📱',color:'#ec4899',hours:1.8,goal:5,progress:36,credits:3,tags:['Needs Attention','Project'],weekHours:[0.2,0.3,0.4,0.3,0.3,0.2,0.1],exam:false},
+  {id:8,name:'Research Methods',code:'CS460',icon:'📝',color:'#06b6d4',hours:2.2,goal:4,progress:55,credits:2,tags:['Paper Due'],weekHours:[0.3,0.4,0.5,0.4,0.3,0.2,0.1],exam:false},
+];
+
+const COLORS = ['#7c3aed','#3b82f6','#10b981','#ef4444','#f59e0b','#ec4899','#06b6d4','#8b5cf6','#f97316','#84cc16'];
+let selectedColor = COLORS[0];
+let selectedIcon = '🎓';
+let currentView = 'grid';
+let activeFilter = 'all';
+let editingId = null;
+
+// Build color picker
+const cp = document.getElementById('color-picker');
+COLORS.forEach((c,i) => {
+  const sw = document.createElement('div');
+  sw.className = 'color-swatch' + (i===0?' selected':'');
+  sw.style.cssText = `background:${c};width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid ${i===0?'white':'transparent'};transition:all 0.2s;`;
+  sw.onclick = () => {
+    document.querySelectorAll('#color-picker .color-swatch').forEach(s => { s.classList.remove('selected'); s.style.borderColor='transparent'; });
+    sw.classList.add('selected'); sw.style.borderColor='white';
+    selectedColor = c;
+  };
+  cp.appendChild(sw);
+});
+
+function selectIcon(el, icon) {
+  selectedIcon = icon;
+  document.querySelectorAll('#icon-picker span').forEach(s => { s.style.borderColor='transparent'; s.style.background='var(--navy4)'; });
+  el.style.borderColor='white'; el.style.background='rgba(124,58,237,0.2)';
+}
+
+// ── Render
+function render() {
+  const container = document.getElementById('courses-container');
+  let filtered = getFiltered();
+  if (currentView === 'grid') {
+    container.className = 'courses-grid';
+    container.innerHTML = filtered.map(c => gridCard(c)).join('') + addCard();
+  } else {
+    container.className = 'courses-list';
+    container.innerHTML = filtered.map(c => listRow(c)).join('');
+  }
+}
+
+function getFiltered() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  return courses.filter(c => {
+    const matchQ = c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q);
+    const matchF = activeFilter === 'all' ||
+      (activeFilter === 'high' && c.tags.some(t => t.includes('High Priority'))) ||
+      (activeFilter === 'low' && c.tags.some(t => t.includes('Needs Attention'))) ||
+      (activeFilter === 'exam' && c.exam);
+    return matchQ && matchF;
+  });
+}
+
+function gridCard(c) {
+  return `
+  <div class="course-card slide-up" style="--card-color:${c.color}" onclick="openDetail(${c.id})">
+    <div class="course-card-top"></div>
+    <div class="course-card-body">
+      <div class="course-card-header">
+        <div class="course-icon-wrap" style="background:${c.color}22;border-color:${c.color}33;">${c.icon}</div>
+        <button class="course-menu" onclick="event.stopPropagation();openEdit(${c.id})">⋯</button>
+      </div>
+      <div class="course-name">${c.name}</div>
+      <div class="course-code">${c.code} · ${c.credits} credits</div>
+      <div class="course-progress-row">
+        <span class="course-progress-label">Weekly goal: ${c.goal}h</span>
+        <span class="course-pct">${c.progress}%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${c.progress}%;background:${c.color};"></div></div>
+      <div class="course-meta">
+        <div class="meta-item"><div class="meta-val" style="color:${c.color}">${c.hours}h</div><div class="meta-label">This Week</div></div>
+        <div class="meta-item"><div class="meta-val" style="color:var(--text2)">${c.goal - c.hours > 0 ? (c.goal - c.hours).toFixed(1) : '✓'}${c.goal - c.hours > 0 ? 'h left' : ''}</div><div class="meta-label">Remaining</div></div>
+      </div>
+    </div>
+    <div class="course-card-footer">
+      <div class="course-tags-wrap">${c.tags.slice(0,2).map(t=>`<span class="course-tag">${t}</span>`).join('')}</div>
+      <button class="btn-study" style="background:${c.color}" onclick="event.stopPropagation()">▶ Study</button>
+    </div>
+  </div>`;
+}
+
+function addCard() {
+  return `
+  <div class="course-card" style="border-style:dashed;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:220px;" onclick="openAddModal()">
+    <div style="text-align:center;color:var(--text3);">
+      <div style="font-size:32px;margin-bottom:10px;opacity:0.5;">＋</div>
+      <div style="font-size:13px;font-weight:600;">Add New Course</div>
+    </div>
+  </div>`;
+}
+
+function listRow(c) {
+  const barH = c.weekHours.map(h => Math.round((h/2)*50));
+  return `
+  <div class="course-row slide-up" onclick="openDetail(${c.id})">
+    <div class="row-color" style="background:${c.color}"></div>
+    <div class="row-icon" style="background:${c.color}22">${c.icon}</div>
+    <div class="row-info">
+      <div class="row-name">${c.name}</div>
+      <div class="row-code">${c.code} · ${c.credits} credits</div>
+    </div>
+    <div class="row-progress">
+      <div class="row-pct" style="color:${c.color}">${c.progress}%</div>
+      <div class="row-progress-bar"><div style="width:${c.progress}%;height:100%;background:${c.color};border-radius:10px;"></div></div>
+    </div>
+    <div class="row-stats">
+      <div class="row-stat"><div class="row-stat-val" style="color:${c.color}">${c.hours}h</div><div class="row-stat-label">This Week</div></div>
+      <div class="row-stat"><div class="row-stat-val" style="color:var(--text2)">${c.goal}h</div><div class="row-stat-label">Goal</div></div>
+    </div>
+    <div class="row-actions">
+      <button class="row-btn primary" style="background:${c.color};border-color:${c.color}" onclick="event.stopPropagation()">▶ Study</button>
+      <button class="row-btn" onclick="event.stopPropagation();openEdit(${c.id})">Edit</button>
+    </div>
+  </div>`;
+}
+
+// ── View & Filter
+function setView(v, btn) {
+  currentView = v;
+  document.querySelectorAll('.vt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function filterBy(f, chip) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  render();
+}
+
+function filterCourses() { render(); }
+
+// ── Modal
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Add New Course';
+  document.getElementById('f-name').value='';
+  document.getElementById('f-code').value='';
+  document.getElementById('f-credits').value='';
+  document.getElementById('f-goal').value='';
+  document.getElementById('add-modal').classList.add('show');
+}
+
+function openEdit(id) {
+  const c = courses.find(x=>x.id===id);
+  if(!c) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Edit Course';
+  document.getElementById('f-name').value = c.name;
+  document.getElementById('f-code').value = c.code;
+  document.getElementById('f-credits').value = c.credits;
+  document.getElementById('f-goal').value = c.goal;
+  selectedColor = c.color; selectedIcon = c.icon;
+  document.getElementById('add-modal').classList.add('show');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function saveCourse() {
+  const name = document.getElementById('f-name').value.trim();
+  const code = document.getElementById('f-code').value.trim();
+  const credits = parseInt(document.getElementById('f-credits').value) || 3;
+  const goal = parseInt(document.getElementById('f-goal').value) || 5;
+  if (!name) { alert('Please enter a course name'); return; }
+  if (editingId) {
+    const idx = courses.findIndex(c=>c.id===editingId);
+    courses[idx] = {...courses[idx], name, code, credits, goal, color:selectedColor, icon:selectedIcon};
+  } else {
+    courses.push({id:Date.now(),name,code,icon:selectedIcon,color:selectedColor,hours:0,goal,progress:0,credits,tags:[],weekHours:[0,0,0,0,0,0,0],exam:false});
+  }
+  closeModal('add-modal');
+  render();
+  updateSummary();
+}
+
+function openDetail(id) {
+  const c = courses.find(x=>x.id===id);
+  if (!c) return;
+  document.getElementById('detail-bar').style.background = c.color;
+  document.getElementById('detail-icon').textContent = c.icon;
+  document.getElementById('detail-icon').style.background = c.color+'22';
+  document.getElementById('detail-name').textContent = c.name;
+  document.getElementById('detail-code').textContent = `${c.code} · ${c.credits} credits`;
+
+  const maxH = Math.max(...c.weekHours, 0.1);
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  document.getElementById('detail-chart').innerHTML = c.weekHours.map((h,i) => `
+    <div class="wc-bar-wrap">
+      <div class="wc-bar" style="height:${(h/maxH)*52}px;background:${c.color};opacity:${i===new Date().getDay()-1?1:0.5};border-radius:4px 4px 0 0;"></div>
+      <div class="wc-day">${days[i]}</div>
+    </div>`).join('');
+
+  document.getElementById('detail-stats').innerHTML = `
+    <div class="ds-card"><div class="ds-val" style="color:${c.color}">${c.hours}h</div><div class="ds-label">This Week</div></div>
+    <div class="ds-card"><div class="ds-val" style="color:var(--green)">${c.progress}%</div><div class="ds-label">Goal Progress</div></div>
+    <div class="ds-card"><div class="ds-val" style="color:var(--accent)">${c.goal}h</div><div class="ds-label">Weekly Goal</div></div>
+  `;
+  document.getElementById('detail-modal').classList.add('show');
+}
+
+function updateSummary() {
+  document.getElementById('sum-total').textContent = courses.length;
+  const total = courses.reduce((a,c) => a+c.hours, 0);
+  document.getElementById('sum-hours').textContent = total.toFixed(1)+'h';
+  document.getElementById('sum-avg').textContent = (total/courses.length).toFixed(1)+'h';
+  const top = courses.reduce((a,b) => a.hours>b.hours?a:b);
+  document.getElementById('sum-top').textContent = top.code.replace('CS','');
+}
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('show'); }));
+
+// Init
+render();
+</script>
+</body>
+</html>
