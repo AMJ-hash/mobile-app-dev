@@ -1,0 +1,153 @@
+{% extends "base.html" %}{% block content %}
+
+{% set agreed = chat.status == 'agreed' %}
+
+<div style="max-width:700px;margin:0 auto">
+
+<!-- Chat Header -->
+<div style="background:#1a5c1a;color:#fff;border-radius:12px 12px 0 0;padding:16px 18px;display:flex;align-items:center;gap:14px">
+  {% if worker.pic %}
+  <img src="/static/uploads/{{ worker.pic }}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.4)"/>
+  {% else %}
+  <div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">{{ worker.emoji or '👷' }}</div>
+  {% endif %}
+  <div style="flex:1">
+    <div style="font-weight:bold;font-size:16px">
+      {% if utype == 'client' %}{{ chat.worker_name }}{% else %}{{ chat.client_name }}{% endif %}
+    </div>
+    <div style="font-size:12px;opacity:.8">
+      {% if utype == 'client' %}{{ worker.trade }} — 📍 {{ worker.city }}{% else %}Client{% endif %}
+    </div>
+    {% if agreed %}
+    <span style="background:#4caf50;color:#fff;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:bold">✅ Booking Agreed</span>
+    {% else %}
+    <span style="background:rgba(255,255,255,.2);padding:2px 10px;border-radius:12px;font-size:11px">💬 Discussing</span>
+    {% endif %}
+  </div>
+  {% if other_phone %}
+  <a href="tel:{{ other_phone }}" style="color:#fff;font-size:22px;text-decoration:none" title="Call">📞</a>
+  <a href="https://wa.me/{{ other_phone|replace('+','')|replace(' ','') }}" target="_blank" style="color:#fff;font-size:22px;text-decoration:none" title="WhatsApp">💬</a>
+  {% endif %}
+</div>
+
+<!-- Messages area -->
+<div id="msgBox" style="background:#fff;padding:16px;min-height:380px;max-height:460px;overflow-y:auto;border-left:1px solid #e0e0e0;border-right:1px solid #e0e0e0">
+  {% if not chat.messages %}
+  <div style="text-align:center;color:#aaa;padding:40px 0">
+    <div style="font-size:40px">💬</div>
+    <p style="margin-top:8px">{{ t('no_messages') }}</p>
+  </div>
+  {% endif %}
+  {% for msg in chat.messages %}
+    {% if msg.type == 'system' or msg.type == 'agreed' %}
+    <div style="text-align:center;margin:12px 0">
+      <span style="background:{% if msg.type=='agreed' %}#e8f5e9{% else %}#f5f5f5{% endif %};color:{% if msg.type=='agreed' %}#1a5c1a{% else %}#888{% endif %};padding:6px 14px;border-radius:14px;font-size:12px;display:inline-block">
+        {{ msg.text }}
+      </span>
+    </div>
+    {% elif msg.sender == my_name %}
+    <!-- My message (right) -->
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+      <div style="max-width:72%">
+        <div style="background:#1a5c1a;color:#fff;padding:10px 14px;border-radius:16px 16px 4px 16px;font-size:14px;line-height:1.5">{{ msg.text }}</div>
+        <div style="font-size:11px;color:#aaa;text-align:right;margin-top:3px">{{ msg.time }}</div>
+      </div>
+    </div>
+    {% else %}
+    <!-- Their message (left) -->
+    <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:10px">
+      <div style="width:30px;height:30px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">
+        {% if utype == 'client' %}{{ worker.emoji or '👷' }}{% else %}👤{% endif %}
+      </div>
+      <div style="max-width:72%">
+        <div style="font-size:11px;color:#888;margin-bottom:2px">{{ msg.sender }}</div>
+        <div style="background:#f1f1f1;color:#222;padding:10px 14px;border-radius:16px 16px 16px 4px;font-size:14px;line-height:1.5">{{ msg.text }}</div>
+        <div style="font-size:11px;color:#aaa;margin-top:3px">{{ msg.time }}</div>
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+</div>
+
+<!-- Message input -->
+{% if not agreed %}
+<div style="background:#f9f9f9;border:1px solid #e0e0e0;border-top:none;padding:12px;border-radius:0 0 0 0">
+  <form method="POST" style="display:flex;gap:8px;align-items:flex-end">
+    <input type="hidden" name="action" value="message"/>
+    <textarea name="text" rows="2" placeholder="{{ t('message_placeholder') }}"
+              style="flex:1;padding:10px 12px;border:1.5px solid #ccc;border-radius:10px;font-size:14px;resize:none;font-family:inherit"
+              id="msgInput" onkeydown="sendOnEnter(event)"></textarea>
+    <button type="submit" style="background:#1a5c1a;color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:15px;cursor:pointer;height:44px">➤</button>
+  </form>
+</div>
+
+<!-- Agree on booking panel -->
+<div style="background:#fff8e1;border:1px solid #ffe082;border-top:none;padding:14px;border-radius:0 0 12px 12px">
+  <strong style="font-size:13px;color:#e65100">🤝 Ready to agree? Confirm the booking details below:</strong>
+  <form method="POST" style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">
+    <input type="hidden" name="action" value="agree"/>
+    <div>
+      <label style="font-size:11px;color:#666;display:block;margin-bottom:3px">Agreed Price (XAF)</label>
+      <input type="number" name="agreed_price" placeholder="e.g. 25000" min="0"
+             style="width:100%;padding:8px 10px;border:1.5px solid #ccc;border-radius:7px;font-size:13px"/>
+    </div>
+    <div>
+      <label style="font-size:11px;color:#666;display:block;margin-bottom:3px">Payment Method</label>
+      <select name="agreed_method" style="width:100%;padding:8px 10px;border:1.5px solid #ccc;border-radius:7px;font-size:13px">
+        <option value="MTN Mobile Money">MTN Mobile Money</option>
+        <option value="Orange Money">Orange Money</option>
+        <option value="Cash on delivery">Cash on delivery</option>
+        <option value="Bank transfer">Bank transfer</option>
+      </select>
+    </div>
+    <button type="submit" style="background:#e65100;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:13px;font-weight:bold;cursor:pointer;white-space:nowrap">
+      ✅ Confirm Booking
+    </button>
+  </form>
+</div>
+
+{% else %}
+<!-- Booking already agreed -->
+<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-top:none;border-radius:0 0 12px 12px;padding:16px;text-align:center">
+  <strong style="color:#1a5c1a;font-size:15px">✅ Booking Confirmed!</strong>
+  <p style="color:#555;font-size:13px;margin-top:6px">You agreed on this booking. Use the buttons above to call or WhatsApp if you need to coordinate further.</p>
+  {% if other_phone %}
+  <a href="https://wa.me/{{ other_phone|replace('+','')|replace(' ','') }}"
+     target="_blank"
+     style="display:inline-block;margin-top:10px;padding:10px 24px;background:#25D366;color:#fff;border-radius:8px;font-weight:bold;text-decoration:none">
+    💬 Continue on WhatsApp
+  </a>
+  {% endif %}
+  <!-- Still allow messages after agreement -->
+  <form method="POST" style="margin-top:12px;display:flex;gap:8px">
+    <input type="hidden" name="action" value="message"/>
+    <input type="text" name="text" placeholder="Send a follow-up message..."
+           style="flex:1;padding:9px 12px;border:1.5px solid #ccc;border-radius:8px;font-size:13px"/>
+    <button type="submit" style="background:#1a5c1a;color:#fff;border:none;border-radius:8px;padding:9px 16px;cursor:pointer">➤</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- Leave Review link (after booking) -->
+{% if agreed and utype == 'client' %}
+<div style="margin-top:10px;text-align:center">
+  <a href="/review/{{ worker.id }}" style="color:#1a5c1a;font-size:13px;font-weight:bold">⭐ Leave a review for {{ worker.name }}</a>
+</div>
+{% endif %}
+
+</div>
+
+<script>
+// Auto-scroll to bottom
+const box = document.getElementById('msgBox');
+if(box) box.scrollTop = box.scrollHeight;
+
+// Send on Enter (Shift+Enter = newline)
+function sendOnEnter(e){
+  if(e.key==='Enter' && !e.shiftKey){
+    e.preventDefault();
+    e.target.closest('form').submit();
+  }
+}
+</script>
+{% endblock %}
