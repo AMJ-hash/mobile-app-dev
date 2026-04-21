@@ -1,0 +1,92 @@
+{% extends "base.html" %}{% block content %}
+<div class="pg-head"><h2>👷 {{ t('worker_reg_title') }}</h2></div>
+<div style="background:#e8f5e9;border-radius:9px;padding:14px;margin-bottom:16px;font-size:13px;color:#1a5c1a">
+  <strong>Worker registration</strong> — upload a photo of your National ID (CNI) and verify your email to build client trust.
+</div>
+{% if err %}<div class="alert-err">{{ err }}</div>{% endif %}
+<form method="POST" enctype="multipart/form-data" class="card" style="max-width:580px">
+
+  <div style="background:#f8f8f8;border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;color:#555">
+    Registering as: <strong>{{ name }}</strong> | {{ phone }}
+  </div>
+
+  <!-- CNI Photo Upload -->
+  <div class="fg">
+    <label>📷 Upload your CNI (National ID Card) *</label>
+    <div style="border:2px dashed #1a5c1a;border-radius:10px;padding:18px;text-align:center;background:#f9fff9;cursor:pointer"
+         onclick="document.getElementById('cniInput').click()">
+      <div id="cniPreview" style="margin-bottom:8px">
+        <span style="font-size:36px">🪪</span><br/>
+        <span style="font-size:13px;color:#555">Click to upload a clear photo of your CNI (front side)</span>
+      </div>
+      <input type="file" id="cniInput" name="cni_photo" accept="image/*,.pdf" required
+        style="display:none" onchange="previewCNI(this)"/>
+    </div>
+    <span style="font-size:12px;color:#888;margin-top:3px">JPG, PNG or PDF — front side only is fine</span>
+  </div>
+
+  <!-- Email for verification -->
+  <div class="fg">
+    <label>📧 Your Email Address * <span style="font-size:11px;color:#888">(for account verification)</span></label>
+    <input type="email" name="email" placeholder="yourname@example.com" required style="font-size:15px;padding:11px"/>
+    <span style="font-size:12px;color:#888;margin-top:3px">We'll send a verification link — no SMS needed!</span>
+  </div>
+
+  <!-- Trade -->
+  <div class="fg">
+    <label>{{ t('trade_select') }}</label>
+    <select name="trade" required>
+      <option value="">-- Select your trade --</option>
+      {% for tr in trades %}<option>{{ tr }}</option>{% endfor %}
+    </select>
+  </div>
+
+  <!-- Bio -->
+  <div class="fg">
+    <label>{{ t('bio_label') }}</label>
+    <textarea name="bio" rows="3" placeholder="e.g. I have 5 years experience in electrical work..." required></textarea>
+  </div>
+
+  <!-- Price range -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="fg"><label>{{ t('price_min_label') }}</label>
+      <input type="number" name="price_min" placeholder="5000" min="500" required/>
+    </div>
+    <div class="fg"><label>{{ t('price_max_label') }}</label>
+      <input type="number" name="price_max" placeholder="50000" min="1000" required/>
+    </div>
+  </div>
+
+  <!-- Profile photo -->
+  <div class="fg">
+    <label>{{ t('profile_pic') }}</label>
+    <input type="file" name="profile_pic" accept="image/*"
+      style="padding:6px;border:1.5px dashed #ccc;border-radius:7px;background:#fafafa"/>
+    <span style="font-size:12px;color:#888;margin-top:3px">JPG, PNG or GIF — max 5MB</span>
+  </div>
+
+  <div style="background:#e3f2fd;border-radius:8px;padding:12px;font-size:13px;color:#1565c0;margin-bottom:4px">
+    📧 After submitting, a <strong>verification link</strong> will be sent to your email. Click it to activate your account. No SMS needed!
+  </div>
+
+  <button type="submit" class="btn btn-green btn-w" style="margin-top:8px">Next — Send Verification Email →</button>
+</form>
+
+<script>
+function previewCNI(input){
+  if(input.files && input.files[0]){
+    const file=input.files[0];
+    const preview=document.getElementById('cniPreview');
+    if(file.type.startsWith('image/')){
+      const reader=new FileReader();
+      reader.onload=function(e){
+        preview.innerHTML='<img src="'+e.target.result+'" style="max-height:120px;border-radius:6px;object-fit:contain"/><br/><span style="font-size:12px;color:#1a5c1a;margin-top:6px;display:block">✅ '+file.name+'</span>';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      preview.innerHTML='<span style="font-size:36px">📄</span><br/><span style="font-size:12px;color:#1a5c1a">'+file.name+'</span>';
+    }
+  }
+}
+</script>
+{% endblock %}

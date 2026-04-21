@@ -1,0 +1,44 @@
+{% extends "base.html" %}{% block content %}
+<div class="dh green">
+  <div class="dh-icon">👤</div>
+  <h2>{{ name }}</h2>
+  <p>{{ 'Worker' if utype=='worker' else 'Client' }}</p>
+</div>
+<div class="grid2">
+  <div>
+    <div class="card">
+      <div class="info-row"><span class="lbl">📞 Phone</span><strong>{{ phone }}</strong></div>
+      <div class="info-row"><span class="lbl">📍 City</span><strong>{{ city }}</strong></div>
+      <div class="info-row"><span class="lbl">🌍 {{ t('lang_label') }}</span>
+        <strong>{% if lang=='en' %}English{% elif lang=='fr' %}Francais{% else %}Pidgin{% endif %}</strong>
+      </div>
+    </div>
+    <div class="card">
+      <strong>{{ t('features_heading') }}</strong>
+      <ul class="feat-list" style="margin-top:10px">
+        <li>📍 GPS auto-location</li>
+        <li>🤖 AI Worker Matching</li>
+        <li>🚨 Emergency mode</li>
+        <li>💰 Price guide per trade</li>
+        <li>💳 MTN Mobile Money + Orange Money</li>
+        <li>🔒 Escrow — money held until job done</li>
+        <li>📵 SMS booking offline</li>
+        <li>👥 Group jobs</li>
+        <li>🔒 ID verified profiles</li>
+        <li>⭐ Reviews system</li>
+        <li>🌍 English + Francais + Pidgin</li>
+      </ul>
+    </div>
+  </div>
+  <div>
+    <div class="card center">
+      <p style="font-size:48px;margin-bottom:10px">🏗️</p>
+      <strong style="font-size:15px">{{ t('about_app') }}</strong>
+      <p class="txt-grey small" style="margin-top:10px;line-height:1.6">
+        MboaLink v1.0<br/>Python Flask + HTML/CSS/JS<br/>
+        Built with love by a Cameroonian student ❤
+      </p>
+    </div>
+    <a href="/logout" class="btn btn-w" style="background:#b71c1c;color:#fff;padding:12px;border-radius:7px;display:block;text-align:center;margin-top:10px">{{ t('nav_logout') }}</a>
+  </div>
+</div>{% endblock %}

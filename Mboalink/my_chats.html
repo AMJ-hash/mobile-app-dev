@@ -1,0 +1,38 @@
+{% extends "base.html" %}{% block content %}
+<div class="pg-head"><h2>💬 My Chats</h2></div>
+
+{% if chats %}
+<div style="display:flex;flex-direction:column;gap:10px;max-width:680px">
+{% for chat in chats %}
+<a href="/chat/{{ chat.id }}" style="background:#fff;border-radius:10px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.1);display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;border-left:4px solid {% if chat.status=='agreed' %}#4caf50{% else %}#1a5c1a{% endif %}">
+  <div style="font-size:28px">💬</div>
+  <div style="flex:1">
+    <div style="font-weight:bold;font-size:15px">
+      {% if session.get('utype')=='worker' %}{{ chat.client_name }}{% else %}{{ chat.worker_name }}{% endif %}
+    </div>
+    {% if chat.messages %}
+    {% set last = chat.messages[-1] %}
+    <div style="font-size:13px;color:#666;margin-top:2px">{{ last.text[:60] }}{% if last.text|length > 60 %}...{% endif %}</div>
+    {% endif %}
+    <div style="font-size:11px;color:#aaa;margin-top:3px">{{ chat.created }}</div>
+  </div>
+  <div>
+    {% if chat.status == 'agreed' %}
+    <span style="background:#e8f5e9;color:#1a5c1a;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:bold">✅ Agreed</span>
+    {% else %}
+    <span style="background:#fff8e1;color:#e65100;padding:3px 10px;border-radius:12px;font-size:11px">Discussing</span>
+    {% endif %}
+  </div>
+</a>
+{% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:60px 0;color:#aaa">
+  <div style="font-size:50px">💬</div>
+  <p style="margin-top:12px;font-size:15px">No chats yet.</p>
+  {% if session.get('utype') == 'client' %}
+  <a href="/workers" style="display:inline-block;margin-top:14px;padding:11px 24px;background:#1a5c1a;color:#fff;border-radius:8px;font-weight:bold;text-decoration:none">Browse Workers to Book →</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

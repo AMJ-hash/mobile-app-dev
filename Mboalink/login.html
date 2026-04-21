@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MboaLink</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/style.css') }}"/>
+</head>
+<body>
+<div class="auth-wrap">
+<div class="auth-box">
+  <div class="auth-lang">
+    <a href="/lang/en"  class="{% if lang=='en'  %}on{% endif %}">English</a>
+    <a href="/lang/fr"  class="{% if lang=='fr'  %}on{% endif %}">Francais</a>
+    <a href="/lang/pid" class="{% if lang=='pid' %}on{% endif %}">Pidgin</a>
+  </div>
+  <div class="auth-logo">🏗️</div>
+  <h2>MboaLink</h2>
+  <p class="sub">{{ t('tagline') }}</p>
+  {% if err %}<div class="alert-err">{{ err }}</div>{% endif %}
+  <form method="POST">
+    <div class="fg"><label>{{ t('fullname') }}</label>
+      <input type="text" name="name" placeholder="Jean-Pierre Mbida" required/></div>
+    <div class="fg"><label>{{ t('phone_label') }}</label>
+      <input type="tel" name="phone" placeholder="+237 6XX XXX XXX" required/></div>
+    <div class="fg"><label>{{ t('city_label') }}</label>
+      <select name="city">{% for c in cities %}<option>{{ c }}</option>{% endfor %}</select></div>
+    <div class="fg"><label>{{ t('iam') }}</label>
+      <div class="radio-row">
+        <label class="radio-label"><input type="radio" name="utype" value="client" checked/> {{ t('client_role') }}</label>
+        <label class="radio-label"><input type="radio" name="utype" value="worker"/> {{ t('worker_role') }}</label>
+      </div></div>
+    <button type="submit" class="btn btn-green btn-w" style="margin-bottom:8px">{{ t('login_btn') }}</button>
+  </form>
+  <button onclick="demo()" class="btn btn-orange btn-w">{{ t('demo_btn') }}</button>
+</div>
+</div>
+<script>function demo(){document.querySelector('[name=name]').value='Demo User';document.querySelector('[name=phone]').value='+237 677 000 000';document.querySelector('form').submit();}</script>
+</body></html>

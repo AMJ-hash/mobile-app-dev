@@ -1,0 +1,39 @@
+{% extends "base.html" %}{% block content %}
+{% with fl=get_flashed_messages(with_categories=true) %}{% for c,m in fl %}<div class="alert-ok">{{m}}</div>{% endfor %}{% endwith %}
+<div class="pg-head">
+  <h2>💬 {{ t('messages_title') }}</h2>
+  <a href="/job/{{ job.id }}" class="btn btn-green">← Back to Job</a>
+</div>
+<div style="background:#fff8e1;border-radius:9px;padding:11px;margin-bottom:14px;font-size:13px;color:#555">
+  📵 {{ t('sms_mode_note') }}
+</div>
+<p style="font-size:13px;color:#888;margin-bottom:10px">Job: <strong>{{ job.title }}</strong></p>
+
+<!-- Messages thread -->
+<div style="background:#fff;border-radius:10px;padding:14px;min-height:200px;max-height:420px;overflow-y:auto;margin-bottom:14px">
+  {% if msgs %}
+    {% for m in msgs %}
+    <div style="margin-bottom:12px;display:flex;flex-direction:column;align-items:{{ 'flex-end' if m.phone == my_phone else 'flex-start' }}">
+      <div style="background:{{ '#1a5c1a' if m.phone == my_phone else '#f0f0f0' }};color:{{ '#fff' if m.phone == my_phone else '#222' }};
+        padding:9px 13px;border-radius:12px;max-width:75%;font-size:14px;line-height:1.5">
+        {{ m.text }}
+      </div>
+      <span style="font-size:11px;color:#aaa;margin-top:3px">
+        {{ m.from }} · {{ m.time }}
+        {% if m.sms_sent %} · 📱 SMS sent{% endif %}
+      </span>
+    </div>
+    {% endfor %}
+  {% else %}
+  <p style="color:#aaa;text-align:center;padding:40px 0">{{ t('no_messages') }}</p>
+  {% endif %}
+</div>
+
+<!-- Send form -->
+<form method="POST" style="display:flex;gap:8px">
+  <input type="text" name="text" placeholder="{{ t('message_placeholder') }}"
+    style="flex:1;padding:11px 13px;border:1.5px solid #ccc;border-radius:8px;font-size:14px" required autofocus/>
+  <button type="submit" class="btn btn-green" style="padding:11px 18px">{{ t('send_message') }}</button>
+</form>
+<p style="font-size:12px;color:#888;margin-top:7px">💡 Message is also sent as SMS to ensure delivery without internet.</p>
+{% endblock %}
