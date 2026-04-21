@@ -1,0 +1,104 @@
+{% extends "base.html" %}{% block content %}
+
+<div class="dh green" style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+  <!-- Profile Picture -->
+  <div style="width:88px;height:88px;border-radius:50%;overflow:hidden;border:3px solid rgba(255,255,255,.5);flex-shrink:0;background:#fff">
+    {% if w.pic %}
+    <img src="/static/uploads/{{ w.pic }}" style="width:100%;height:100%;object-fit:cover"/>
+    {% else %}
+    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:38px">{{ w.emoji }}</div>
+    {% endif %}
+  </div>
+  <div>
+    <h2 style="margin:0">{{ w.name }}</h2>
+    <p style="margin:4px 0 0;opacity:.85">{{ w.trade }} — 📍 {{ w.city }}</p>
+    {% if w.cert %}<span style="background:rgba(255,255,255,.25);padding:3px 10px;border-radius:12px;font-size:12px">🏅 {{ w.cert }}</span>{% endif %}
+  </div>
+</div>
+
+<div class="grid2">
+  <div>
+    <div class="card">
+      <div class="info-row"><span class="lbl">⭐ Rating</span><strong class="txt-orange">{{ w.rating }}/5 ({{ w.ratings }} {{ t('reviews_label') }})</strong></div>
+      <div class="info-row"><span class="lbl">💼 {{ t('experience') }}</span><strong>{{ w.jobs }} {{ t('jobs_done') }}</strong></div>
+      <div class="info-row"><span class="lbl">🔒 {{ t('trust_score') }}</span><strong class="txt-green">{{ w.trust }}/100</strong></div>
+      <div class="info-row"><span class="lbl">🏅 {{ t('loyalty_label') }}</span><strong style="color:{{ w.loy_color }}">{{ w.loy }}</strong></div>
+      <div class="info-row"><span class="lbl">📶 {{ t('availability') }}</span>
+        <strong class="{{ 'txt-green' if w.status=='available' else 'txt-grey' }}">{{ w.status_label }}</strong></div>
+      <div class="info-row"><span class="lbl">🪪 {{ t('identity') }}</span>
+        <strong>{% if w.cni_verified and w.email_verified %}✅ ID & Email Verified{% elif w.cni_verified %}✅ ID Verified{% else %}⚠ Not fully verified{% endif %}</strong></div>
+      <div class="info-row"><span class="lbl">💰 {{ t('price_range') }}</span><strong>{{ price }}</strong></div>
+    </div>
+
+    {% if w.badges %}
+    <div class="card">
+      <strong>{{ t('badges_label') }}</strong><br/><br/>
+      {% for b in w.badges %}<span class="pill pill-green" style="margin:2px 2px 4px 0;display:inline-block">{{ b }}</span>{% endfor %}
+      {% if w.special %}<span class="pill pill-gold" style="margin:2px">{{ w.special }}</span>{% endif %}
+    </div>{% endif %}
+
+    <div class="card"><strong>{{ t('about_label') }}</strong><p class="bio-text">{{ w.bio }}</p></div>
+
+    <!-- Portfolio -->
+    {% if portfolio %}
+    <div class="card">
+      <strong>📸 Previous Work</strong>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:12px">
+        {% for item in portfolio %}
+        <div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden">
+          {% if item.pic %}
+          <img src="/static/uploads/{{ item.pic }}" style="width:100%;height:90px;object-fit:cover;display:block"/>
+          {% else %}
+          <div style="height:90px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:26px">🖼️</div>
+          {% endif %}
+          <div style="padding:7px">
+            <strong style="font-size:12px">{{ item.title }}</strong>
+            {% if item.desc %}<p style="font-size:11px;color:#888;margin:2px 0">{{ item.desc }}</p>{% endif %}
+            <p style="font-size:10px;color:#bbb;margin:2px 0">{{ item.date }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div>
+    <!-- Book & Chat Card -->
+    <div class="card contact-box" style="border:2px solid #1a5c1a">
+      <h4 style="color:#1a5c1a">Book {{ w.name }}</h4>
+      <p style="font-size:13px;color:#555;margin-bottom:14px">Open a chat to discuss your job, agree on price, and choose how to pay — all in one place.</p>
+      {% if session.get('logged_in') and session.get('utype') != 'worker' %}
+      <a href="/book/{{ w.id }}" class="btn btn-green btn-w" style="margin-bottom:10px;text-align:center;display:block;padding:13px;font-size:15px;text-decoration:none">
+        💬 {{ t('book_btn') }}
+      </a>
+      {% elif session.get('utype') == 'worker' %}
+      <p style="font-size:13px;color:#888;text-align:center">Workers cannot book other workers.</p>
+      {% else %}
+      <a href="/login" class="btn btn-green btn-w" style="text-align:center;display:block;padding:13px;text-decoration:none">Login to Book</a>
+      {% endif %}
+      <p class="big-phone">{{ w.phone }}</p>
+      <a href="tel:{{ w.phone }}" class="btn btn-green btn-w" style="margin-bottom:8px;text-decoration:none;display:block;text-align:center">{{ t('call_btn') }}</a>
+      <a href="https://wa.me/{{ w.phone|replace(' ','')|replace('+','') }}" target="_blank" class="btn btn-orange btn-w" style="margin-bottom:8px;text-decoration:none;display:block;text-align:center">{{ t('whatsapp_btn') }}</a>
+    </div>
+
+    <!-- Reviews -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <strong>{{ t('client_reviews') }}</strong>
+        {% if session.get('logged_in') and session.get('utype') != 'worker' %}
+        <a href="/review/{{ w.id }}" style="font-size:12px;color:#1a5c1a;font-weight:bold">+ Write Review</a>
+        {% endif %}
+      </div>
+      {% for r in reviews %}
+      <div class="rev-item">
+        <div class="rev-top"><strong>{{ r.from_name }}</strong><span class="rev-star">{{ r.rating }} ★</span></div>
+        <p class="rev-txt">"{{ r.comment }}"</p>
+        <p class="rev-date">{{ r.date }}</p>
+      </div>{% else %}
+      <p class="txt-grey" style="margin-top:8px">{{ t('no_reviews') }}</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}{% block content %}
+{% with msgs=get_flashed_messages(with_categories=true) %}{% for cat,msg in msgs %}<div class="alert-{{ 'ok' if cat=='ok' else 'err' }}">{{ msg }}</div>{% endfor %}{% endwith %}
+
+{% if worker %}
+<!-- Worker Hero Card -->
+<div class="dh green" style="position:relative">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:3px solid rgba(255,255,255,.5);flex-shrink:0;background:#fff">
+      {% if worker.pic %}
+      <img src="/static/uploads/{{ worker.pic }}" style="width:100%;height:100%;object-fit:cover"/>
+      {% else %}
+      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;background:#e8f5e9">{{ worker.emoji }}</div>
+      {% endif %}
+    </div>
+    <div>
+      <h2 style="margin:0">{{ worker.name }} {{ worker.emoji }}</h2>
+      <p style="margin:4px 0 0;opacity:.85">{{ worker.trade }} — 📍 {{ worker.city }}</p>
+      <span style="background:rgba(255,255,255,.25);padding:3px 10px;border-radius:20px;font-size:12px">
+        ⭐ {{ worker.rating }}/5 &nbsp;|&nbsp; {{ worker.jobs }} jobs &nbsp;|&nbsp; Trust: {{ worker.trust }}/100
+      </span>
+    </div>
+  </div>
+  <div style="position:absolute;top:14px;right:14px">
+    <span style="background:{% if worker.status=='available' %}#4caf50{% elif worker.status=='busy' %}#ff9800{% else %}#9e9e9e{% endif %};color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:bold">
+      {{ worker.status_label }}
+    </span>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px">
+
+  <!-- Quick actions -->
+  <div class="card">
+    <strong style="font-size:14px">⚡ Quick Actions</strong>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+      <a href="/worker-profile" class="btn btn-green btn-w" style="text-align:center;padding:10px;text-decoration:none">✏️ Edit My Profile</a>
+      <a href="/jobs" class="btn btn-green btn-w" style="text-align:center;padding:10px;text-decoration:none;background:#1565c0">🔍 Browse Jobs to Apply</a>
+      <a href="/worker-profile" class="btn btn-green btn-w" style="text-align:center;padding:10px;text-decoration:none;background:#e65100">📸 Add Portfolio Work</a>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="card">
+    <strong style="font-size:14px">🔔 Notifications</strong>
+    {% if notifs %}
+    {% for n in notifs %}
+    <div style="padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px">
+      <span style="color:#555">{{ n.text }}</span>
+      <span style="color:#aaa;font-size:11px;float:right">{{ n.time }}</span>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p style="color:#aaa;font-size:13px;margin-top:8px">No notifications yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Portfolio -->
+<div class="card" style="margin-top:4px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <strong>📸 My Portfolio ({{ portfolio|length }} items)</strong>
+    <a href="/worker-profile" style="font-size:13px;color:#1a5c1a;text-decoration:none">+ Add Work</a>
+  </div>
+  {% if portfolio %}
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px">
+    {% for item in portfolio %}
+    <div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden">
+      {% if item.pic %}
+      <img src="/static/uploads/{{ item.pic }}" style="width:100%;height:100px;object-fit:cover"/>
+      {% else %}
+      <div style="height:100px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:30px">🖼️</div>
+      {% endif %}
+      <div style="padding:8px">
+        <strong style="font-size:12px">{{ item.title }}</strong>
+        <p style="font-size:11px;color:#888;margin:2px 0">{{ item.date }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:24px;color:#aaa">
+    <div style="font-size:40px">📸</div>
+    <p>No portfolio items yet. Add photos of your previous work to attract more clients!</p>
+    <a href="/worker-profile" class="btn btn-green" style="padding:10px 20px;text-decoration:none;display:inline-block;margin-top:8px">+ Add First Item</a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Recent Reviews -->
+<div class="card" style="margin-top:4px">
+  <strong>⭐ My Reviews ({{ reviews|length }})</strong>
+  {% if reviews %}
+  {% for r in reviews[:3] %}
+  <div class="rev-item">
+    <div class="rev-top"><strong>{{ r.from_name }}</strong><span class="rev-star">{{ r.rating }} ★</span></div>
+    <p class="rev-txt">"{{ r.comment }}"</p>
+    <p class="rev-date">{{ r.date }}</p>
+  </div>
+  {% endfor %}
+  {% else %}
+  <p style="color:#aaa;margin-top:8px;font-size:13px">No reviews yet. Complete jobs to earn reviews!</p>
+  {% endif %}
+</div>
+
+<!-- Open Jobs to Apply -->
+<div class="card" style="margin-top:4px">
+  <strong>🔍 Open Jobs ({{ open_jobs|length }})</strong>
+  {% if open_jobs %}
+  {% for j in open_jobs[:5] %}
+  <div style="padding:12px 0;border-bottom:1px solid #f0f0f0">
+    <div style="display:flex;justify-content:space-between;align-items:start">
+      <div>
+        <strong style="font-size:14px">{{ j.title }}</strong>
+        <p style="font-size:12px;color:#888;margin:2px 0">{{ j.trade }} — {{ j.city }} {% if j.emergency %}<span style="color:red">🚨 URGENT</span>{% endif %}</p>
+        <p style="font-size:13px;color:#1a5c1a;font-weight:bold">{{ "{:,}".format(j.budget) }} XAF</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <a href="/job/{{ j.id }}" style="font-size:12px;padding:6px 12px;background:#1a5c1a;color:#fff;border-radius:6px;text-decoration:none">View</a>
+        <form method="POST" action="/apply-job/{{ j.id }}" style="margin:0">
+          <button type="submit" style="font-size:12px;padding:6px 12px;background:#e65100;color:#fff;border:none;border-radius:6px;cursor:pointer;width:100%">Apply</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {% if open_jobs|length > 5 %}
+  <a href="/jobs" style="font-size:13px;color:#1a5c1a;text-decoration:none;display:block;margin-top:10px;text-align:center">See all {{ open_jobs|length }} open jobs →</a>
+  {% endif %}
+  {% else %}
+  <p style="color:#aaa;margin-top:8px;font-size:13px">No open jobs at the moment. Check back soon!</p>
+  {% endif %}
+</div>
+
+{% else %}
+<div class="card" style="text-align:center;padding:40px">
+  <p>Worker profile not found. <a href="/logout">Logout</a> and try again.</p>
+</div>
+{% endif %}
+{% endblock %}

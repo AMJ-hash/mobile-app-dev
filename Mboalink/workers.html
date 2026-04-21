@@ -1,0 +1,68 @@
+{% extends "base.html" %}{% block content %}
+<div class="pg-head"><h2>👷 {{ t('nav_workers') }}</h2></div>
+<form method="GET" class="filter-bar">
+  <input type="text" name="q" value="{{ q }}" placeholder="{{ t('search_placeholder') }}"/>
+  <select name="trade"><option value="">{{ t('all_trades') }}</option>
+    {% for tr in trades %}<option {% if tr==sel_trade %}selected{% endif %}>{{ tr }}</option>{% endfor %}
+  </select>
+  <select name="city"><option value="">{{ t('all_cities') }}</option>
+    {% for c in cities %}<option {% if c==sel_city %}selected{% endif %}>{{ c }}</option>{% endfor %}
+  </select>
+  <button type="submit" class="btn btn-green">{{ t('search_btn') }}</button>
+</form>
+
+<div class="ai-box">
+  <h4>🤖 {{ t('ai_heading') }}</h4>
+  <div class="ai-row">
+    <select id="aiTrade">{% for tr in trades %}<option>{{ tr }}</option>{% endfor %}</select>
+    <button onclick="runAI('{{ lang }}')" class="btn btn-orange">{{ t('ai_btn') }}</button>
+  </div>
+  <div id="aiResult" class="ai-result" style="display:none"></div>
+</div>
+
+<p class="res-count">{{ workers|length }} {{ t('results_label') }}</p>
+<div class="w-list">
+{% for w in workers %}
+<div class="w-row" style="display:flex;align-items:center;gap:14px;background:#fff;border-radius:10px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.1)">
+  <!-- Profile pic -->
+  <a href="/worker/{{ w.id }}" style="flex-shrink:0">
+    {% if w.pic %}
+    <img src="/static/uploads/{{ w.pic }}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #1a5c1a;display:block"/>
+    {% else %}
+    <div style="width:64px;height:64px;border-radius:50%;background:#e8f5e9;border:2px solid #1a5c1a;display:flex;align-items:center;justify-content:center;font-size:28px">{{ w.emoji }}</div>
+    {% endif %}
+  </a>
+  <!-- Info -->
+  <div class="w-body" style="flex:1;min-width:0">
+    <a href="/worker/{{ w.id }}" style="text-decoration:none;color:inherit">
+      <div class="w-top">
+        <span class="w-name">{{ w.name }}</span>
+        <span class="loy-badge" style="color:{{ w.loy_color }}">{{ w.loy }}</span>
+      </div>
+      <div class="w-trade">{{ w.trade }} — 📍 {{ w.city }}</div>
+      <div class="w-row2">
+        <span class="w-star">{{ w.rating }} ★ ({{ w.ratings }} {{ t('reviews_label') }})</span>
+        <span class="pill {{ 'pill-green' if w.status=='available' else ('pill-orange' if w.status=='busy' else 'pill-grey') }}">{{ w.status_label }}</span>
+      </div>
+      <div class="w-row3">
+        <span>💼 {{ w.jobs }} {{ t('jobs_done') }}</span>
+        <span>🔒 {{ w.trust }}/100</span>
+        <span>💰 {{ "{:,}".format(w.price_min) }}–{{ "{:,}".format(w.price_max) }} XAF</span>
+      </div>
+      <div style="margin-top:5px">
+        {% if w.cni_verified %}<span class="pill pill-green">{{ t('verified') }}</span>{% endif %}
+        {% if w.cert %}<span class="pill pill-cert">{{ w.cert }}</span>{% endif %}
+        {% if w.special %}<span class="pill pill-gold">{{ w.special }}</span>{% endif %}
+      </div>
+    </a>
+  </div>
+  <!-- Book button -->
+  {% if session.get('utype') != 'worker' and session.get('logged_in') %}
+  <a href="/book/{{ w.id }}" style="flex-shrink:0;background:#1a5c1a;color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:bold;text-decoration:none;text-align:center;white-space:nowrap">
+    💬 Book &amp; Chat
+  </a>
+  {% endif %}
+</div>
+{% else %}<div class="empty-msg">{{ t('no_workers') }}</div>{% endfor %}
+</div>
+{% endblock %}

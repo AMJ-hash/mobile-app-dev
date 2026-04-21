@@ -1,0 +1,51 @@
+{% extends "base.html" %}{% block content %}
+<div class="dh green">
+  <div class="dh-icon">📧</div>
+  <h2>Check Your Email</h2>
+  <p>Verification sent to: <strong>{{ email }}</strong></p>
+</div>
+
+{% if send_error %}
+<div style="background:#fff3e0;border-radius:10px;padding:16px;margin-bottom:16px;border:2px solid #ff9800">
+  <strong style="color:#e65100">⚠️ Email could not be sent automatically</strong>
+  <p style="font-size:13px;color:#555;margin:6px 0">Error: {{ send_error }}</p>
+  {% if not resend_key_set %}
+  <p style="font-size:13px;color:#333;margin:8px 0"><strong>To fix this:</strong></p>
+  <ol style="font-size:13px;color:#555;margin:0;padding-left:20px;line-height:2">
+    <li>Go to <a href="https://resend.com" target="_blank" style="color:#1a5c1a">resend.com</a> and create a FREE account</li>
+    <li>Get your API key (starts with <code>re_</code>)</li>
+    <li>Stop the server, then run:<br/><code style="background:#f5f5f5;padding:4px 8px;border-radius:4px;display:inline-block;margin-top:4px">RESEND_API_KEY=re_YOUR_KEY python app.py</code></li>
+    <li>Register again — the email will be sent automatically</li>
+  </ol>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="card" style="max-width:480px">
+  {% if not send_error %}
+  <div style="font-size:50px;text-align:center;margin-bottom:12px">📬</div>
+  <h3 style="color:#1a5c1a;text-align:center;margin-bottom:10px">Verification Email Sent!</h3>
+  <p style="color:#555;font-size:14px;line-height:1.7;margin-bottom:18px;text-align:center">
+    We sent a verification link to <strong>{{ email }}</strong>.<br/>
+    Click the link in that email to activate your worker account.<br/>
+    <span style="color:#888;font-size:12px">Check your spam folder if you don't see it.</span>
+  </p>
+  {% endif %}
+
+  {% if token %}
+  <div style="background:#e8f5e9;border-radius:10px;padding:14px;text-align:center;border:2px solid #4caf50">
+    <p style="font-size:13px;color:#1a5c1a;font-weight:bold;margin-bottom:10px">
+      {% if send_error %}🔧 Developer Mode — Click to verify manually:{% else %}✅ Or click this button to verify instantly (demo):{% endif %}
+    </p>
+    <a href="/verify-email/{{ token }}"
+       style="display:inline-block;padding:12px 28px;background:#1a5c1a;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px">
+      ✅ Activate My Worker Account
+    </a>
+  </div>
+  {% endif %}
+
+  <p style="font-size:12px;color:#aaa;margin-top:14px;text-align:center">
+    Wrong email? <a href="/register-worker" style="color:#1a5c1a">Go back and fix it</a>
+  </p>
+</div>
+{% endblock %}
