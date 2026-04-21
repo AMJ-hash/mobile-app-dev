@@ -1,0 +1,43 @@
+{% extends "base.html" %}{% block content %}
+<div class="dh red">
+  <div class="dh-icon">🚨</div>
+  <h2>{{ t('emergency_heading') }}</h2>
+  <p>{{ t('emergency_sub') }}</p>
+</div>
+<form method="POST" class="card" style="max-width:500px">
+  <div class="fg"><label>{{ t('trade_label') }}</label>
+    <select name="trade">{% for tr in trades %}<option>{{ tr }}</option>{% endfor %}</select>
+  </div>
+  <div class="fg"><label>{{ t('city_label') }}</label>
+    <select name="city">{% for c in cities %}<option {% if c==user_city %}selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+  </div>
+  <button type="submit" class="btn btn-red btn-w" style="font-size:15px;padding:13px">{{ t('find_now_btn') }}</button>
+</form>
+{% if result %}
+<div class="match-box">
+  <h3>✅ {{ t('best_match') }}</h3>
+  <div class="match-inner">
+    <div class="match-top">
+      <span class="match-emoji">{{ result.worker.emoji }}</span>
+      <div>
+        <strong style="font-size:16px">{{ result.worker.name }}</strong><br/>
+        <span>{{ result.worker.trade }} — 📍 {{ result.worker.city }}</span><br/>
+        <span style="color:#c07000;font-weight:bold">{{ result.worker.rating }} ★</span> | {{ result.worker.jobs }} {{ t('jobs_done') }}<br/>
+        <span class="{{ 'txt-green' if result.worker.status=='available' else 'txt-grey' }}">{{ result.worker.status_label }}</span>
+      </div>
+      <span class="match-score">Score: {{ result.score }}</span>
+    </div>
+    <div class="reason-row">{% for r in result.reasons %}<span class="reason-tag">{{ r }}</span>{% endfor %}</div>
+    <div class="match-btns">
+      <a href="tel:{{ result.worker.phone }}" class="btn btn-green">{{ t('call_worker') }}</a>
+      <a href="/worker/{{ result.worker.id }}" class="btn btn-orange">{{ t('view_profile') }}</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+<div class="sms-box">
+  <h4>📵 {{ t('sms_heading') }}</h4>
+  <p>{{ t('sms_format') }}</p>
+  <div class="sms-code">MBOA [trade] [city]<br/>Example: <strong>{{ t('sms_example') }}</strong></div>
+  <p class="small txt-grey" style="margin-top:6px">You will get a reply within 5 minutes.</p>
+</div>{% endblock %}

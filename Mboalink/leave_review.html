@@ -1,0 +1,90 @@
+{% extends "base.html" %}{% block content %}
+<div class="dh green">
+  <div class="dh-icon">⭐</div>
+  <h2>Leave a Review</h2>
+  <p>for {{ worker.name }} — {{ worker.trade }}</p>
+</div>
+
+{% if success %}
+<div class="alert-ok">{{ success }}</div>
+<div style="text-align:center;margin-top:16px">
+  <a href="/worker/{{ worker.id }}" class="btn btn-green" style="padding:11px 24px;text-decoration:none;border-radius:7px">
+    👤 View Worker Profile
+  </a>
+</div>
+{% else %}
+
+{% if err %}<div class="alert-err">{{ err }}</div>{% endif %}
+
+<form method="POST" class="card" style="max-width:540px">
+
+  <!-- Star Rating -->
+  <div class="fg">
+    <label style="font-size:15px;font-weight:bold">⭐ Rating *</label>
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+      {% for i in [1,2,3,4,5] %}
+      <label style="cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px;padding:8px 14px;border:2px solid #ddd;border-radius:20px;transition:all .2s"
+             id="star-label-{{i}}" onclick="selectRating({{i}})">
+        <input type="radio" name="rating" value="{{i}}" {% if i==5 %}checked{% endif %} style="display:none"/>
+        {{ "★" * i }}{{ "☆" * (5-i) }} &nbsp;{{i}}/5
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Comment -->
+  <div class="fg">
+    <label>💬 Your Comment *</label>
+    <textarea name="comment" rows="4" placeholder="Describe your experience with this worker..." required
+      style="font-size:14px;padding:12px"></textarea>
+  </div>
+
+  <!-- Badge Awards -->
+  <div class="fg">
+    <label style="font-size:15px;font-weight:bold">🏅 Award Badges <span style="font-size:12px;color:#888;font-weight:normal">(optional — select all that apply)</span></label>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      {% for badge in badge_options %}
+      <label style="cursor:pointer;display:flex;align-items:center;gap:6px;padding:8px 14px;border:2px solid #ddd;border-radius:20px;font-size:13px;transition:all .2s;background:#fafafa"
+             class="badge-opt" id="badge-{{loop.index}}">
+        <input type="checkbox" name="badges" value="{{ badge }}"
+               style="display:none" onchange="toggleBadge(this, 'badge-{{loop.index}}')"/>
+        {{ badge }}
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-green btn-w" style="margin-top:8px;padding:13px;font-size:15px">
+    ✅ Submit Review
+  </button>
+</form>
+{% endif %}
+
+<script>
+// Highlight selected star rating
+function selectRating(n){
+  for(let i=1;i<=5;i++){
+    const el=document.getElementById('star-label-'+i);
+    if(el){
+      el.style.borderColor=i===n?'#1a5c1a':'#ddd';
+      el.style.background=i===n?'#e8f5e9':'#fafafa';
+      el.style.color=i===n?'#1a5c1a':'#333';
+    }
+  }
+}
+function toggleBadge(input, labelId){
+  const label=document.getElementById(labelId);
+  if(input.checked){
+    label.style.borderColor='#1a5c1a';
+    label.style.background='#e8f5e9';
+    label.style.color='#1a5c1a';
+  } else {
+    label.style.borderColor='#ddd';
+    label.style.background='#fafafa';
+    label.style.color='#333';
+  }
+}
+// Initialize star 5 as selected
+selectRating(5);
+</script>
+{% endblock %}

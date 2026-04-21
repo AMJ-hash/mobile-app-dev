@@ -1,0 +1,48 @@
+{% extends "base.html" %}{% block content %}
+<div class="hero">
+  <h2>{{ t('hi') }}, {{ name }} 👋</h2>
+  <p>{{ t('tagline') }}</p>
+  <span class="city-tag">📍 {{ city }}</span>
+  <br/><br/>
+  <a href="/emergency" class="btn btn-red">{{ t('emergency_btn') }}</a>
+</div>
+
+{% if notifs %}
+<div style="background:#fff3e0;border-radius:9px;padding:13px;margin-bottom:14px;border-left:4px solid #d84315">
+  <strong style="font-size:14px;color:#d84315">🔔 {{ t('notif_title') }}</strong>
+  {% for n in notifs %}
+  <div style="margin-top:7px;font-size:13px;color:#333;padding:6px 0;border-bottom:1px solid #ffe0b2">
+    {{ n.text }} <span style="color:#aaa;font-size:11px"> · {{ n.time }}</span>
+  </div>{% endfor %}
+</div>
+{% endif %}
+
+<div class="stats">
+  <div class="stat"><div class="stat-n g">{{ stats.workers }}</div><div class="stat-lbl">{{ t('workers_label') }}</div></div>
+  <div class="stat"><div class="stat-n o">{{ stats.jobs }}</div><div class="stat-lbl">{{ t('jobs_label') }}</div></div>
+  <div class="stat"><div class="stat-n g">{{ stats.cities }}</div><div class="stat-lbl">{{ t('cities_label') }}</div></div>
+</div>
+<div class="sec-title">{{ t('top_workers') }}</div>
+<div class="hscroll">
+{% for w in top %}
+<a href="/worker/{{ w.id }}" class="mini-card">
+  {% if w.pic %}
+  <img src="/static/uploads/{{ w.pic }}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;margin-bottom:4px"/>
+  {% else %}
+  <div class="mini-emoji">{{ w.emoji }}</div>
+  {% endif %}
+  <div class="mini-name">{{ w.name }}</div>
+  <div class="mini-trade">{{ w.trade }}</div>
+  <div class="mini-star">{{ w.rating }} ★</div>
+  <div class="mini-city">📍 {{ w.city }}</div>
+  <div class="mini-avail {{ 'g' if w.status=='available' else 'b' }}">{{ w.status_label }}</div>
+</a>{% endfor %}
+</div>
+<div class="sec-title">{{ t('quick_actions') }}</div>
+<div class="qa-grid">
+  <a href="/workers"   class="qa">👷<br><small>{{ t('browse_workers') }}</small></a>
+  <a href="/jobs"      class="qa">📋<br><small>{{ t('browse_jobs') }}</small></a>
+  <a href="/post-job"  class="qa">➕<br><small>{{ t('post_job') }}</small></a>
+  <a href="/emergency" class="qa red-qa">🚨<br><small>{{ t('emergency') }}</small></a>
+</div>
+{% endblock %}
