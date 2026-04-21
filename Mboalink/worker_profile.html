@@ -1,0 +1,177 @@
+{% extends "base.html" %}{% block content %}
+<div class="pg-head"><h2>✏️ My Profile & Portfolio</h2></div>
+{% if err %}<div class="alert-err">{{ err }}</div>{% endif %}
+{% if success %}<div class="alert-ok">{{ success }}</div>{% endif %}
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+<!-- LEFT: Edit Profile -->
+<div>
+  <div class="card">
+    <strong style="font-size:15px">👤 Edit Profile Info</strong>
+    <form method="POST" enctype="multipart/form-data" style="margin-top:14px">
+      <input type="hidden" name="action" value="update"/>
+
+      <!-- Profile picture with preview -->
+      <div class="fg">
+        <label>{{ t('profile_pic') }}</label>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px">
+          <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:3px solid #1a5c1a;flex-shrink:0;background:#f5f5f5" id="picPreviewWrap">
+            {% if worker.pic %}
+            <img id="picPreview" src="/static/uploads/{{ worker.pic }}" style="width:100%;height:100%;object-fit:cover"/>
+            {% else %}
+            <div id="picPreview" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px">{{ worker.emoji }}</div>
+            {% endif %}
+          </div>
+          <div>
+            <label for="picInput" class="btn btn-green" style="display:inline-block;padding:8px 16px;cursor:pointer;font-size:13px">📷 Change Photo</label>
+            <input type="file" id="picInput" name="profile_pic" accept="image/*" style="display:none" onchange="previewPic(this)"/>
+            <p style="font-size:11px;color:#888;margin-top:4px">JPG, PNG or WEBP</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>📞 Phone Number</label>
+        <input type="tel" name="phone" value="{{ worker.phone }}" placeholder="+237 6XX XXX XXX" style="font-size:15px;padding:10px"/>
+      </div>
+      <div class="fg">
+        <label>💬 Bio / Description</label>
+        <textarea name="bio" rows="4" style="font-size:14px;padding:10px">{{ worker.bio }}</textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label>Min Price (XAF)</label><input type="number" name="price_min" value="{{ worker.price_min }}"/></div>
+        <div class="fg"><label>Max Price (XAF)</label><input type="number" name="price_max" value="{{ worker.price_max }}"/></div>
+      </div>
+      <div class="fg">
+        <label>📶 Availability Status</label>
+        <select name="status">
+          <option value="available" {% if worker.status=='available' %}selected{% endif %}>✅ Available</option>
+          <option value="busy" {% if worker.status=='busy' %}selected{% endif %}>🔴 Busy</option>
+          <option value="offline" {% if worker.status=='offline' %}selected{% endif %}>⭕ Offline</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-green btn-w" style="margin-top:8px">💾 Save Changes</button>
+    </form>
+  </div>
+
+  <!-- Worker Stats -->
+  <div class="card" style="margin-top:8px">
+    <strong>📊 My Stats</strong>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+      <div style="background:#f1f8e9;border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:bold;color:#1a5c1a">{{ worker.rating }}</div>
+        <div style="font-size:11px;color:#888">⭐ Rating</div>
+      </div>
+      <div style="background:#e3f2fd;border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:bold;color:#1565c0">{{ worker.jobs }}</div>
+        <div style="font-size:11px;color:#888">Jobs Done</div>
+      </div>
+      <div style="background:#fce4ec;border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:bold;color:#c62828">{{ worker.trust }}/100</div>
+        <div style="font-size:11px;color:#888">Trust Score</div>
+      </div>
+      <div style="background:#fff8e1;border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:bold;color:#e65100">{{ worker.loy }}</div>
+        <div style="font-size:11px;color:#888">Level</div>
+      </div>
+    </div>
+    {% if worker.badges %}
+    <div style="margin-top:12px">
+      <strong style="font-size:13px">🏅 My Badges</strong><br/><br/>
+      {% for b in worker.badges %}<span class="pill pill-green" style="margin:2px">{{ b }}</span>{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- RIGHT: Portfolio -->
+<div>
+  <div class="card">
+    <strong style="font-size:15px">📸 Add Portfolio Item</strong>
+    <p style="font-size:12px;color:#888;margin:4px 0 12px">Show clients your previous work — photos of completed jobs, projects, etc.</p>
+    <form method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="action" value="add_portfolio"/>
+      <div class="fg">
+        <label>Project Title *</label>
+        <input type="text" name="port_title" placeholder="e.g. House wiring in Bastos, Yaounde" required/>
+      </div>
+      <div class="fg">
+        <label>Short Description</label>
+        <textarea name="port_desc" rows="2" placeholder="Brief description of the work done..."></textarea>
+      </div>
+      <div class="fg">
+        <label>Photo of the work</label>
+        <div style="border:2px dashed #1a5c1a;border-radius:8px;padding:14px;text-align:center;cursor:pointer;background:#f9fff9"
+             onclick="document.getElementById('portInput').click()">
+          <div id="portPreview">
+            <span style="font-size:28px">🖼️</span><br/>
+            <span style="font-size:12px;color:#888">Click to upload photo</span>
+          </div>
+          <input type="file" id="portInput" name="port_photo" accept="image/*"
+                 style="display:none" onchange="previewPort(this)"/>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-green btn-w">➕ Add to Portfolio</button>
+    </form>
+  </div>
+
+  <!-- Existing Portfolio Items -->
+  {% if portfolio %}
+  <div class="card" style="margin-top:8px">
+    <strong>My Work ({{ portfolio|length }} items)</strong>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+      {% for item in portfolio %}
+      <div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;position:relative">
+        {% if item.pic %}
+        <img src="/static/uploads/{{ item.pic }}" style="width:100%;height:110px;object-fit:cover;display:block"/>
+        {% else %}
+        <div style="height:110px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:36px">🖼️</div>
+        {% endif %}
+        <div style="padding:8px">
+          <strong style="font-size:12px">{{ item.title }}</strong>
+          {% if item.desc %}<p style="font-size:11px;color:#666;margin:2px 0">{{ item.desc }}</p>{% endif %}
+          <p style="font-size:10px;color:#aaa;margin:2px 0">{{ item.date }}</p>
+          <form method="POST" style="margin-top:4px">
+            <input type="hidden" name="action" value="delete_portfolio"/>
+            <input type="hidden" name="port_id" value="{{ item.id }}"/>
+            <button type="submit" style="font-size:11px;color:#c62828;background:none;border:none;cursor:pointer;padding:0">🗑 Remove</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card" style="margin-top:8px">
+    <a href="/worker-dashboard" style="display:block;text-align:center;padding:11px;background:#f5f5f5;border-radius:7px;text-decoration:none;color:#333;font-weight:bold">← Back to Dashboard</a>
+    <a href="/worker/{{ worker.id }}" style="display:block;text-align:center;padding:11px;background:#e8f5e9;border-radius:7px;text-decoration:none;color:#1a5c1a;font-weight:bold;margin-top:8px">👁 View Public Profile</a>
+  </div>
+</div>
+</div>
+
+<script>
+function previewPic(input){
+  if(input.files&&input.files[0]){
+    const r=new FileReader();
+    r.onload=e=>{
+      document.getElementById('picPreview').outerHTML=
+        '<img id="picPreview" src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover"/>';
+    };
+    r.readAsDataURL(input.files[0]);
+  }
+}
+function previewPort(input){
+  if(input.files&&input.files[0]){
+    const r=new FileReader();
+    r.onload=e=>{
+      document.getElementById('portPreview').innerHTML=
+        '<img src="'+e.target.result+'" style="max-height:100px;border-radius:6px;object-fit:contain"/><br/>'
+        +'<span style="font-size:11px;color:#1a5c1a">'+input.files[0].name+'</span>';
+    };
+    r.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}

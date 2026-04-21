@@ -1,0 +1,118 @@
+{% extends "base.html" %}{% block content %}
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat,msg in msgs %}<div class="alert-ok">{{ msg }}</div>{% endfor %}
+{% endwith %}
+{% if job.emergency %}<div class="urgency-bar">🚨 URGENT JOB</div>{% endif %}
+<div class="dh {{ 'red' if job.emergency else 'green' }}">
+  <h2>{{ job.title }}</h2><p>{{ job.trade }} — 📍 {{ job.city }}</p>
+</div>
+
+<div class="grid2">
+  <div>
+    <div class="card">
+      <div class="info-row"><span class="lbl">💰 {{ t('budget_display') }}</span><strong class="txt-orange">{{ "{:,}".format(job.budget) }} XAF</strong></div>
+      <div class="info-row"><span class="lbl">📍 {{ t('address_display') }}</span><strong>{{ job.address }}</strong></div>
+      <div class="info-row"><span class="lbl">📶 {{ t('status_display') }}</span><strong>{{ job.status_label }}</strong></div>
+      <div class="info-row"><span class="lbl">👤 {{ t('posted_by') }}</span><strong>{{ job.client }}</strong></div>
+      {% if job.group %}<div class="info-row"><span class="lbl">👥</span><strong>{{ job.workers_needed }} {{ t('group_info') }}</strong></div>{% endif %}
+      {% if job.escrow %}<div class="escrow-strip">{{ t('escrow_active') }}</div>{% endif %}
+    </div>
+    <div class="card"><strong>{{ t('desc_display') }}</strong><p class="bio-text">{{ job.desc }}</p></div>
+
+    <a href="/messages/{{ job.id }}" class="btn btn-green btn-w" style="display:block;text-align:center;padding:11px;margin-bottom:10px">
+      💬 {{ t('messages_title') }} {% if messages %}({{ messages|length }}){% endif %}
+    </a>
+  </div>
+
+  <div>
+    {% if payment %}
+    <div class="card" style="margin-bottom:10px">
+      <strong>💳 Payment Status</strong>
+      <div class="info-row" style="margin-top:8px"><span class="lbl">Method</span><strong>{{ payment.method }}</strong></div>
+      <div class="info-row"><span class="lbl">Total</span><strong>{{ "{:,}".format(payment.total) }} XAF</strong></div>
+      <div class="info-row"><span class="lbl">Paid (70%)</span><strong class="txt-green">{{ "{:,}".format(payment.immediate) }} XAF</strong></div>
+      <div class="info-row"><span class="lbl">Escrow (30%)</span>
+        <strong class="{{ 'txt-orange' if payment.status in ('held','awaiting') else ('txt-green' if payment.status=='released' else 'txt-grey') }}">
+          {{ "{:,}".format(payment.escrow_amount) }} XAF —
+          {% if payment.status=='held' %}{{ t('escrow_held') }}
+          {% elif payment.status=='awaiting' %}{{ t('awaiting_confirmation') }}
+          {% elif payment.status=='released' %}{{ t('escrow_released') }}
+          {% elif payment.status=='refunded' %}{{ t('escrow_refunded') }}
+          {% endif %}
+        </strong>
+      </div>
+
+      {% if payment.fapshi_trans_id %}
+      <div style="font-size:11px;color:#888;margin-top:6px">Fapshi ID: {{ payment.fapshi_trans_id }}</div>
+      {% endif %}
+
+      {% if payment.proof_photo %}
+      <div style="margin-top:10px">
+        <strong style="font-size:13px">📸 Proof photo from worker:</strong><br/>
+        <img src="/static/uploads/{{ payment.proof_photo }}" style="max-width:100%;border-radius:8px;margin-top:6px"/>
+      </div>
+      {% endif %}
+
+      {% if payment.completed_at %}
+      <div style="font-size:12px;color:#888;margin-top:6px">Marked complete: {{ payment.completed_at }}</div>
+      {% endif %}
+
+      <!-- WhatsApp booking link -->
+      {% if payment.wa_url and payment.status == 'held' %}
+      <a href="{{ payment.wa_url }}" target="_blank"
+         style="display:block;margin-top:10px;padding:10px;background:#25D366;color:#fff;text-align:center;border-radius:7px;text-decoration:none;font-weight:bold;font-size:13px">
+        💬 Confirm Booking on WhatsApp
+      </a>
+      {% endif %}
+
+      <!-- CLIENT: confirm or refund -->
+      {% if payment.status == 'awaiting' and not is_worker %}
+      <div style="margin-top:12px">
+        <a href="/validate-payment/{{ job.id }}/release" class="btn btn-green btn-w" style="display:block;text-align:center;padding:11px;margin-bottom:7px">
+          {{ t('validate_payment_btn') }}
+        </a>
+        <a href="/validate-payment/{{ job.id }}/refund" class="btn btn-w" style="display:block;text-align:center;padding:11px;background:#b71c1c;color:#fff;border-radius:7px">
+          {{ t('reject_job_btn') }}
+        </a>
+      </div>
+      {% endif %}
+
+      <!-- After release, show review prompt -->
+      {% if payment.status == 'released' and not is_worker %}
+      <div style="background:#fff8e1;border-radius:8px;padding:12px;margin-top:12px;text-align:center">
+        <p style="font-size:13px;color:#555;margin-bottom:8px">How was the work? Leave a review!</p>
+        <a href="/workers" style="display:inline-block;padding:10px 20px;background:#f9a825;color:#fff;border-radius:7px;text-decoration:none;font-weight:bold;font-size:13px">
+          ⭐ Rate the Worker
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- WORKER: mark complete -->
+    {% if is_worker and payment and payment.status == 'held' %}
+    <div class="card" style="margin-bottom:10px;border:2px solid #1a5c1a">
+      <strong>{{ t('complete_job_btn') }}</strong>
+      <form method="POST" action="/job-complete/{{ job.id }}" enctype="multipart/form-data" style="margin-top:10px">
+        <div class="fg">
+          <label>{{ t('upload_proof') }}</label>
+          <input type="file" name="proof_photo" accept="image/*"
+            style="padding:6px;border:1.5px dashed #ccc;border-radius:7px;background:#fafafa"/>
+        </div>
+        <button type="submit" class="btn btn-green btn-w">{{ t('complete_job_btn') }}</button>
+      </form>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- No payment yet -->
+    <div class="card contact-box">
+      <h4>{{ t('contact_client') }}</h4>
+      <p class="big-phone">{{ job.phone }}</p>
+      <a href="tel:{{ job.phone }}" class="btn btn-green btn-w" style="margin-bottom:8px">{{ t('call_btn') }}</a>
+      <a href="https://wa.me/{{ job.phone|replace(' ','')|replace('+','') }}" target="_blank" class="btn btn-orange btn-w" style="margin-bottom:8px">{{ t('whatsapp_btn') }}</a>
+      <a href="/payment/{{ job.id }}" class="btn btn-green btn-w">{{ t('pay_btn') }}</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

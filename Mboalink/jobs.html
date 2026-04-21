@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block content %}
+<div class="pg-head"><h2>{{ t('jobs_title') }}</h2><a href="/post-job" class="btn btn-orange">{{ t('post_btn') }}</a></div>
+<a href="/emergency" class="btn btn-red btn-w" style="margin-bottom:14px;display:block">{{ t('emergency_strip') }}</a>
+<div class="j-list">
+{% for j in jobs %}
+<a href="/job/{{ j.id }}" class="j-card {% if j.emergency %}urgent-card{% endif %}">
+  <div class="j-top">
+    <span class="j-title">{% if j.emergency %}🚨 {% endif %}{{ j.title }}</span>
+    <span class="pill {{ 'pill-green' if j.status=='open' else 'pill-orange' }}">{{ j.status_label }}</span>
+  </div>
+  <div class="j-mid"><span>{{ j.trade }}</span><span>📍 {{ j.city }}</span><span class="j-budget">{{ "{:,}".format(j.budget) }} XAF</span></div>
+  <div class="j-bot">
+    <span class="j-client">{{ t('posted_by') }}: {{ j.client }}</span>
+    {% if j.group %}<span class="pill pill-green">👥 {{ t('group_badge') }}</span>{% endif %}
+    {% if j.escrow %}<span class="pill pill-green">🔒 {{ t('escrow_badge') }}</span>{% endif %}
+  </div>
+</a>{% endfor %}
+</div>{% endblock %}

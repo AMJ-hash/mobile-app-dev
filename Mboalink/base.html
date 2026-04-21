@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MboaLink</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/style.css') }}"/>
+</head>
+<body>
+{% if session.get('logged_in') %}
+<nav class="nav">
+  <a href="{% if session.get('utype')=='worker' %}/worker-dashboard{% else %}/home{% endif %}" class="nav-logo">MboaLink 🏗️</a>
+  <div class="nav-links">
+    {% if session.get('utype')=='worker' %}
+      <a href="/worker-dashboard" class="{% if request.endpoint=='worker_dashboard' %}on{% endif %}">🏠 Dashboard</a>
+      <a href="/jobs" class="{% if request.endpoint=='jobs_list' %}on{% endif %}">🔍 Browse Jobs</a>
+      <a href="/my-chats" class="{% if request.endpoint=='my_chats_page' %}on{% endif %}">💬 Chats</a>
+      <a href="/worker-profile" class="{% if request.endpoint=='worker_profile' %}on{% endif %}">✏️ My Profile</a>
+    {% else %}
+      <a href="/home" class="{% if request.endpoint=='home' %}on{% endif %}">{{ t('nav_home') }}</a>
+      <a href="/workers" class="{% if request.endpoint=='workers_list' %}on{% endif %}">{{ t('nav_workers') }}</a>
+      <a href="/jobs" class="{% if request.endpoint=='jobs_list' %}on{% endif %}">{{ t('nav_jobs') }}</a>
+      <a href="/my-chats" class="{% if request.endpoint=='my_chats_page' %}on{% endif %}">💬 My Chats</a>
+      <a href="/emergency" class="urgent {% if request.endpoint=='emergency' %}on{% endif %}">🚨</a>
+      <a href="/profile" class="{% if request.endpoint=='profile' %}on{% endif %}">{{ t('nav_profile') }}</a>
+    {% endif %}
+    <a href="/logout" style="opacity:.7">{{ t('nav_logout') }}</a>
+    <div class="lang-bar">
+      <a href="/lang/en" class="{% if lang=='en' %}on{% endif %}">EN</a>
+      <a href="/lang/fr" class="{% if lang=='fr' %}on{% endif %}">FR</a>
+      <a href="/lang/pid" class="{% if lang=='pid' %}on{% endif %}">PID</a>
+    </div>
+  </div>
+</nav>
+{% endif %}
+<div class="wrap">
+  {% with msgs=get_flashed_messages(with_categories=true) %}
+  {% for cat,msg in msgs %}
+  <div class="alert-{{ 'ok' if cat=='ok' else 'err' }}" style="margin-bottom:10px">{{ msg }}</div>
+  {% endfor %}{% endwith %}
+  {% block content %}{% endblock %}
+</div>
+<script src="{{ url_for('static',filename='js/main.js') }}"></script>
+</body></html>
